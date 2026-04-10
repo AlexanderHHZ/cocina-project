@@ -18,13 +18,17 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+
+        // 🔥 FIX: tipado correcto
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           // 1. Setear cookies en el request (para Server Components downstream)
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
+
           // 2. Recrear response con cookies actualizadas
           supabaseResponse = NextResponse.next({ request });
+
           cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options);
           });
@@ -34,7 +38,9 @@ export async function middleware(request: NextRequest) {
   );
 
   // IMPORTANTE: No eliminar esta línea. Refresca el token si está por expirar.
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // Proteger rutas admin
   if (request.nextUrl.pathname.startsWith('/admin') && !user) {
