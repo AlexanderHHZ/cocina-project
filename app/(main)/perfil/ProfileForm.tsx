@@ -27,14 +27,20 @@ export default function ProfileForm({ profile }: Props) {
     setSaving(true);
     setMessage('');
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName.trim() })
-      .eq('id', profile.id);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim() })
+        .eq('id', profile.id);
 
-    setSaving(false);
-    setMessage(error ? 'Error al guardar' : '¡Perfil actualizado!');
-    setTimeout(() => setMessage(''), 3000);
+      if (error) throw error;
+      setMessage('¡Perfil actualizado!');
+    } catch (err: any) {
+      setMessage(`Error: ${err.message || 'No se pudo guardar. Recarga la página e intenta de nuevo.'}`);
+    } finally {
+      setSaving(false);
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   return (

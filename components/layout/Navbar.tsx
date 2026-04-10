@@ -24,10 +24,10 @@ export default function Navbar() {
 
   const supabase = createSupabaseBrowser();
 
-  // Escuchar cambios de auth
+  // Escuchar cambios de auth (incluye sesión inicial con INITIAL_SESSION)
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setUser(session?.user ?? null);
         setAuthLoading(false);
         if (session?.user) {
@@ -43,25 +43,7 @@ export default function Navbar() {
       }
     );
 
-    // Estado inicial
-    supabase.auth.getUser()
-      .then(async ({ data }) => {
-        setUser(data.user);
-        if (data.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', data.user.id)
-            .single();
-          setIsAdmin(profile?.is_admin ?? false);
-        }
-        setAuthLoading(false);
-      })
-      .catch(() => {
-        setAuthLoading(false);
-      });
-
-    // Seguridad: si después de 3s sigue cargando, quitar loading
+    // Seguridad: si después de 3s no ha respondido, quitar loading
     const timeout = setTimeout(() => setAuthLoading(false), 3000);
 
     return () => {
@@ -95,8 +77,15 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Si falla signOut, forzar limpieza local
+    }
+    setUser(null);
+    setIsAdmin(false);
     setUserMenuOpen(false);
+    router.push('/');
     router.refresh();
   };
 
