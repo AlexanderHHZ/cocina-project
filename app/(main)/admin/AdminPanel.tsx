@@ -47,6 +47,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
   const [showPostForm, setShowPostForm] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [postImages, setPostImages] = useState<File[]>([]);
+  const [postVideoUrl, setPostVideoUrl] = useState('');
   const [savingPost, setSavingPost] = useState(false);
   const [postMessage, setPostMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -502,7 +503,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
           <div className="bg-white rounded-2xl border border-charcoal/5 p-6 mb-6 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-bold">Nueva publicación</h3>
-              <button onClick={() => { setShowPostForm(false); setPostContent(''); setPostImages([]); }}
+              <button onClick={() => { setShowPostForm(false); setPostContent(''); setPostImages([]); setPostVideoUrl(''); }}
                 className="p-2 hover:bg-charcoal/5 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
@@ -544,6 +545,21 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                 )}
               </div>
 
+              {/* Video de YouTube */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  <Youtube className="w-4 h-4 inline mr-1" /> Video de YouTube
+                  <span className="text-charcoal/40 font-normal ml-1">(opcional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={postVideoUrl}
+                  onChange={(e) => setPostVideoUrl(e.target.value)}
+                  className="input-field"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+              </div>
+
               <button
                 onClick={async () => {
                   if (!postContent.trim()) { setPostMessage('Error: Escribe algo'); return; }
@@ -562,9 +578,32 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                       imageUrls.push(urlData.publicUrl);
                     }
 
+                    // Procesar URL de YouTube
+                    let videoEmbed: string | null = null;
+                    if (postVideoUrl.trim()) {
+                      const patterns = [
+                        /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+                        /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+                        /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+                        /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+                      ];
+                      let youtubeId: string | null = null;
+                      for (const pattern of patterns) {
+                        const match = postVideoUrl.match(pattern);
+                        if (match) { youtubeId = match[1]; break; }
+                      }
+                      if (!youtubeId) {
+                        setPostMessage('Error: URL de YouTube no válida');
+                        setSavingPost(false);
+                        return;
+                      }
+                      videoEmbed = `https://www.youtube.com/embed/${youtubeId}`;
+                    }
+
                     const { error } = await supabase.from('posts').insert({
                       content: postContent.trim(),
                       images: imageUrls,
+                      video_url: videoEmbed,
                       author_id: userId,
                     });
 
@@ -573,6 +612,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                     setPostMessage('Publicación creada');
                     setPostContent('');
                     setPostImages([]);
+                    setPostVideoUrl('');
                     setShowPostForm(false);
 
                     // Recargar posts

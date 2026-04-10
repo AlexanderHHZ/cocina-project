@@ -16,12 +16,12 @@ export default function ImageCarousel({ images, alt }: Props) {
 
   if (images.length === 1) {
     return (
-      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-charcoal/5">
+      <div className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden bg-charcoal/5">
         <Image
           src={images[0]}
           alt={alt}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="(max-width: 640px) 100vw, 600px"
           loading="lazy"
           placeholder="blur"
@@ -35,13 +35,13 @@ export default function ImageCarousel({ images, alt }: Props) {
   const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
 
   return (
-    <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-charcoal/5 group">
+    <div className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden bg-charcoal/5 group">
       {/* Imagen actual */}
       <Image
         src={images[current]}
         alt={`${alt} - ${current + 1} de ${images.length}`}
         fill
-        className="object-cover transition-opacity duration-300"
+        className="object-contain transition-opacity duration-300"
         sizes="(max-width: 640px) 100vw, 600px"
         loading="lazy"
         placeholder="blur"

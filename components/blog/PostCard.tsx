@@ -11,6 +11,24 @@ interface Props {
   comments: PostComment[];
 }
 
+// Renderiza texto con #hashtags resaltados en azul
+function RenderContent({ text }: { text: string }) {
+  // Separar por hashtags: busca #PalabrasConOSinEspacios
+  const parts = text.split(/(#[^\s#]+)/g);
+
+  return (
+    <span>
+      {parts.map((part, i) =>
+        part.startsWith('#') ? (
+          <span key={i} className="text-blue-500 font-medium">{part}</span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
+}
+
 export default function PostCard({ post, userId, isLiked, likesCount, comments }: Props) {
   const stateKey = `${post.id}-${isLiked}-${likesCount}`;
 
@@ -46,15 +64,32 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
         </div>
       </div>
 
-      {/* Contenido */}
+      {/* Contenido con hashtags resaltados */}
       <div className="px-4 pb-3">
-        <p className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-line">{post.content}</p>
+        <p className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-line">
+          <RenderContent text={post.content} />
+        </p>
       </div>
 
       {/* Carrusel de imágenes */}
       {post.images.length > 0 && (
         <div className="px-4 pb-3">
           <ImageCarousel images={post.images} alt="Publicación" />
+        </div>
+      )}
+
+      {/* Video de YouTube */}
+      {post.video_url && (
+        <div className="px-4 pb-3">
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-charcoal/5">
+            <iframe
+              src={post.video_url}
+              title="Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
         </div>
       )}
 
