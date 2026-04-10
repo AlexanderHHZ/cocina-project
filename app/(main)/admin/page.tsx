@@ -1,6 +1,6 @@
 import { createSupabaseServer } from '@/lib/supabase-server';
 import { redirect } from 'next/navigation';
-import AdminPanel from '@/app/(main)/admin/AdminPanel';
+import AdminPanel from './AdminPanel';
 
 export default async function AdminPage() {
   const supabase = await createSupabaseServer();
@@ -22,5 +22,11 @@ export default async function AdminPage() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  return <AdminPanel initialRecipes={recipes ?? []} userId={user.id} />;
+  // Cargar mensajes de contacto
+  const { data: messages } = await supabase
+    .from('contact_messages')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  return <AdminPanel initialRecipes={recipes ?? []} initialMessages={messages ?? []} userId={user.id} />;
 }

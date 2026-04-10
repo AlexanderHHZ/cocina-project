@@ -4,9 +4,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import {
-  Plus, Trash2, Edit3, Save, X, Image as ImageIcon, Youtube, ChefHat,
+  Plus, Trash2, Edit3, Save, X, Image as ImageIcon, Youtube, ChefHat, Mail, Check,
 } from 'lucide-react';
 import type { Recipe } from '@/types';
+
+type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+};
 
 type RecipeForm = {
   title: string;
@@ -25,11 +34,13 @@ const emptyForm: RecipeForm = {
 
 interface Props {
   initialRecipes: Recipe[];
+  initialMessages: ContactMessage[];
   userId: string;
 }
 
-export default function AdminPanel({ initialRecipes, userId }: Props) {
+export default function AdminPanel({ initialRecipes, initialMessages, userId }: Props) {
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
+  const [messages, setMessages] = useState<ContactMessage[]>(initialMessages);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RecipeForm>(emptyForm);
@@ -369,6 +380,75 @@ export default function AdminPanel({ initialRecipes, userId }: Props) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ======== MENSAJES DE CONTACTO ======== */}
+      <div className="mt-16">
+        <h2 className="font-display text-2xl font-bold flex items-center gap-3 mb-6">
+          <Mail className="w-6 h-6 text-terra" />
+          Mensajes de contacto
+          {messages.filter(m => !m.is_read).length > 0 && (
+            <span className="bg-terra text-white text-xs font-bold px-2.5 py-1 rounded-full">
+              {messages.filter(m => !m.is_read).length} nuevo{messages.filter(m => !m.is_read).length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </h2>
+
+        <div className="space-y-3">
+          {messages.length === 0 && (
+            <p className="text-charcoal/40 text-center py-10">No hay mensajes.</p>
+          )}
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`bg-white rounded-xl border p-5 transition-all ${
+                msg.is_read ? 'border-charcoal/5' : 'border-terra/20 bg-terra/[0.02]'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-medium">{msg.name}</h3>
+                    {!msg.is_read && (
+                      <span className="w-2 h-2 rounded-full bg-terra flex-shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-charcoal/40 mb-3">
+                    {msg.email} · {new Date(msg.created_at).toLocaleDateString('es-ES', {
+                      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })}
+                  </p>
+                  <p className="text-sm text-charcoal/70">{msg.message}</p>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {!msg.is_read && (
+                    <button
+                      onClick={async () => {
+                        await supabase.from('contact_messages').update({ is_read: true }).eq('id', msg.id);
+                        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, is_read: true } : m));
+                      }}
+                      className="p-2 rounded-lg hover:bg-sage/10 transition-colors text-charcoal/40 hover:text-sage"
+                      title="Marcar como leído"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => {
+                      if (!confirm('¿Eliminar este mensaje?')) return;
+                      await supabase.from('contact_messages').delete().eq('id', msg.id);
+                      setMessages(prev => prev.filter(m => m.id !== msg.id));
+                    }}
+                    className="p-2 rounded-lg hover:bg-wine/5 transition-colors text-charcoal/40 hover:text-wine"
+                    title="Eliminar"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

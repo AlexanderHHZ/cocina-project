@@ -18,12 +18,18 @@ export default function ProfileForm({ profile }: Props) {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!fullName.trim()) {
+      setMessage('Error: El nombre no puede estar vacío');
+      return;
+    }
+
     setSaving(true);
     setMessage('');
 
     const { error } = await supabase
       .from('profiles')
-      .update({ full_name: fullName })
+      .update({ full_name: fullName.trim() })
       .eq('id', profile.id);
 
     setSaving(false);
@@ -48,6 +54,8 @@ export default function ProfileForm({ profile }: Props) {
         <input
           id="name"
           type="text"
+          required
+          minLength={2}
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           className="input-field"

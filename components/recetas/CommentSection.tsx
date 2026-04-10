@@ -106,17 +106,23 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
             Sé el primero en comentar esta receta.
           </p>
         )}
-        {comments.map((comment) => (
+        {comments.map((comment) => {
+          const displayName = comment.user?.full_name?.trim()
+            || comment.user?.email?.split('@')[0]
+            || 'Usuario';
+          const initial = displayName.charAt(0).toUpperCase();
+
+          return (
           <div key={comment.id} className="flex gap-3 animate-fade-in">
             <div className="w-9 h-9 rounded-full bg-sage/15 flex-shrink-0 flex items-center justify-center">
               <span className="text-xs font-bold text-sage">
-                {comment.user?.full_name?.charAt(0) ?? comment.user?.email?.charAt(0) ?? '?'}
+                {initial}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-medium">
-                  {comment.user?.full_name ?? 'Anónimo'}
+                  {displayName}
                 </span>
                 <span className="text-xs text-charcoal/40">
                   {formatDate(comment.created_at)}
@@ -125,7 +131,8 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
               <p className="text-sm text-charcoal/70 mt-1">{comment.content}</p>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Formulario */}
