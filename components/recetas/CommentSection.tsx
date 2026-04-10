@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
-import { Send, MessageCircle } from 'lucide-react';
+import { Send, MessageCircle, Reply, ChevronDown, ChevronUp, X } from 'lucide-react';
 import type { Comment } from '@/types';
 import type { User } from '@supabase/supabase-js';
 
@@ -16,10 +16,13 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
   const [newComment, setNewComment] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [sending, setSending] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+  const replyInputRef = useRef<HTMLInputElement>(null);
 
   const supabase = createSupabaseBrowser();
 
-  // Escuchar estado de auth para mantener sincronizado
+  // Auth
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -27,7 +30,6 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
       }
     );
 
-    // Fallback: reintentar con getSession después de 1s
     const retry = setTimeout(async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) setUser(session.user);
@@ -39,7 +41,7 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
     };
   }, []);
 
-  // Suscripción realtime para nuevos comentarios
+  // Realtime
   useEffect(() => {
     const channel = supabase
       .channel(`comments:${recipeId}`)
@@ -52,7 +54,6 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
           filter: `recipe_id=eq.${recipeId}`,
         },
         async (payload) => {
-          // Obtener perfil del autor
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -65,10 +66,14 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
           };
 
           setComments((prev) => {
-            // Evitar duplicados
             if (prev.some((c) => c.id === newC.id)) return prev;
             return [...prev, newC];
           });
+
+          // Auto-expandir respuestas del comentario padre
+          if (newC.parent_id) {
+            setExpandedReplies((prev) => new Set(prev).add(newC.parent_id!));
+          }
         }
       )
       .subscribe();
@@ -76,6 +81,7 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
     return () => { supabase.removeChannel(channel); };
   }, [recipeId]);
 
+  // Enviar comentario o respuesta
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
@@ -87,10 +93,31 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
         recipe_id: recipeId,
         user_id: user.id,
         content: newComment.trim(),
+        parent_id: replyingTo?.id ?? null,
       });
 
-    if (!error) setNewComment('');
+    if (!error) {
+      setNewComment('');
+      setReplyingTo(null);
+    }
     setSending(false);
+  };
+
+  const handleReply = (comment: Comment) => {
+    setReplyingTo(comment);
+    setTimeout(() => replyInputRef.current?.focus(), 100);
+  };
+
+  const toggleReplies = (commentId: string) => {
+    setExpandedReplies((prev) => {
+      const next = new Set(prev);
+      if (next.has(commentId)) {
+        next.delete(commentId);
+      } else {
+        next.add(commentId);
+      }
+      return next;
+    });
   };
 
   const formatDate = (dateStr: string) => {
@@ -99,68 +126,148 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
     });
   };
 
+  const getDisplayName = (comment: Comment) => {
+    return comment.user?.full_name?.trim()
+      || comment.user?.email?.split('@')[0]
+      || 'Usuario';
+  };
+
+  // Separar comentarios raíz y respuestas
+  const rootComments = comments.filter((c) => !c.parent_id);
+  const getReplies = (parentId: string) =>
+    comments.filter((c) => c.parent_id === parentId);
+
+  const totalCount = comments.length;
+
   return (
     <div>
       <h3 className="font-display text-xl font-bold flex items-center gap-2 mb-6">
         <MessageCircle className="w-5 h-5 text-terra" />
-        Comentarios ({comments.length})
+        Comentarios ({totalCount})
       </h3>
 
-      {/* Lista */}
-      <div className="space-y-4 mb-6">
-        {comments.length === 0 && (
+      {/* Lista de comentarios */}
+      <div className="space-y-5 mb-6">
+        {rootComments.length === 0 && (
           <p className="text-charcoal/40 text-sm py-4">
             Sé el primero en comentar esta receta.
           </p>
         )}
-        {comments.map((comment) => {
-          const displayName = comment.user?.full_name?.trim()
-            || comment.user?.email?.split('@')[0]
-            || 'Usuario';
+
+        {rootComments.map((comment) => {
+          const displayName = getDisplayName(comment);
           const initial = displayName.charAt(0).toUpperCase();
+          const replies = getReplies(comment.id);
+          const isExpanded = expandedReplies.has(comment.id);
 
           return (
-          <div key={comment.id} className="flex gap-3 animate-fade-in">
-            <div className="w-9 h-9 rounded-full bg-sage/15 flex-shrink-0 flex items-center justify-center">
-              <span className="text-xs font-bold text-sage">
-                {initial}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2">
-                <span className="text-sm font-medium">
-                  {displayName}
-                </span>
-                <span className="text-xs text-charcoal/40">
-                  {formatDate(comment.created_at)}
-                </span>
+            <div key={comment.id} className="animate-fade-in">
+              {/* Comentario principal */}
+              <div className="flex gap-3">
+                <div className="w-9 h-9 rounded-full bg-sage/15 flex-shrink-0 flex items-center justify-center">
+                  <span className="text-xs font-bold text-sage">{initial}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-medium">{displayName}</span>
+                    <span className="text-xs text-charcoal/40">{formatDate(comment.created_at)}</span>
+                  </div>
+                  <p className="text-sm text-charcoal/70 mt-1">{comment.content}</p>
+
+                  {/* Botones */}
+                  <div className="flex items-center gap-4 mt-2">
+                    {user && (
+                      <button
+                        onClick={() => handleReply(comment)}
+                        className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-terra transition-colors"
+                      >
+                        <Reply className="w-3.5 h-3.5" /> Responder
+                      </button>
+                    )}
+
+                    {replies.length > 0 && (
+                      <button
+                        onClick={() => toggleReplies(comment.id)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-terra hover:text-terra/80 transition-colors"
+                      >
+                        {isExpanded ? (
+                          <><ChevronUp className="w-3.5 h-3.5" /> Ocultar {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</>
+                        ) : (
+                          <><ChevronDown className="w-3.5 h-3.5" /> Ver {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-charcoal/70 mt-1">{comment.content}</p>
+
+              {/* Respuestas (colapsables) */}
+              {isExpanded && replies.length > 0 && (
+                <div className="ml-12 mt-3 space-y-3 border-l-2 border-charcoal/5 pl-4">
+                  {replies.map((reply) => {
+                    const replyName = getDisplayName(reply);
+                    const replyInitial = replyName.charAt(0).toUpperCase();
+
+                    return (
+                      <div key={reply.id} className="flex gap-3 animate-fade-in">
+                        <div className="w-7 h-7 rounded-full bg-terra/10 flex-shrink-0 flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-terra">{replyInitial}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm font-medium">{replyName}</span>
+                            <span className="text-xs text-charcoal/40">{formatDate(reply.created_at)}</span>
+                          </div>
+                          <p className="text-sm text-charcoal/70 mt-1">{reply.content}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
           );
         })}
       </div>
 
       {/* Formulario */}
       {user ? (
-        <form onSubmit={handleSubmit} className="flex gap-3">
-          <input
-            type="text"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Escribe un comentario..."
-            className="input-field flex-1"
-            maxLength={500}
-          />
-          <button
-            type="submit"
-            disabled={sending || !newComment.trim()}
-            className="btn-primary !px-4"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+        <div>
+          {/* Indicador de respuesta */}
+          {replyingTo && (
+            <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-terra/5 rounded-lg text-sm animate-fade-in">
+              <Reply className="w-3.5 h-3.5 text-terra flex-shrink-0" />
+              <span className="text-charcoal/60">
+                Respondiendo a <span className="font-medium text-charcoal">{getDisplayName(replyingTo)}</span>
+              </span>
+              <button
+                onClick={() => setReplyingTo(null)}
+                className="ml-auto p-0.5 rounded hover:bg-charcoal/5 text-charcoal/40 hover:text-charcoal transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex gap-3">
+            <input
+              ref={replyInputRef}
+              type="text"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder={replyingTo ? `Responder a ${getDisplayName(replyingTo)}...` : 'Escribe un comentario...'}
+              className="input-field flex-1"
+              maxLength={500}
+            />
+            <button
+              type="submit"
+              disabled={sending || !newComment.trim()}
+              className="btn-primary !px-4"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
       ) : (
         <p className="text-sm text-charcoal/50">
           <a href="/login" className="text-terra hover:underline">Inicia sesión</a> para comentar.
