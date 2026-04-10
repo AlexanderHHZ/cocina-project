@@ -11,15 +11,118 @@ interface Props {
   initialComments: Comment[];
 }
 
+// ============================================
+// Componente individual de comentario (recursivo)
+// ============================================
+function CommentItem({
+  comment,
+  allComments,
+  depth,
+  user,
+  onReply,
+  formatDate,
+  getDisplayName,
+}: {
+  comment: Comment;
+  allComments: Comment[];
+  depth: number;
+  user: User | null;
+  onReply: (comment: Comment) => void;
+  formatDate: (d: string) => string;
+  getDisplayName: (c: Comment) => string;
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  const replies = allComments.filter((c) => c.parent_id === comment.id);
+  const displayName = getDisplayName(comment);
+  const initial = displayName.charAt(0).toUpperCase();
+
+  // Limitar profundidad visual a 3 niveles para no romper en móvil
+  const maxDepth = 3;
+  const indent = depth < maxDepth;
+
+  // Colores de avatar según profundidad
+  const avatarStyles = [
+    'bg-sage/15 text-sage',
+    'bg-terra/10 text-terra',
+    'bg-gold/10 text-gold',
+    'bg-wine/10 text-wine',
+  ];
+  const avatarStyle = avatarStyles[Math.min(depth, avatarStyles.length - 1)];
+  const avatarSize = depth === 0 ? 'w-9 h-9' : 'w-7 h-7';
+  const textSize = depth === 0 ? 'text-xs' : 'text-[10px]';
+
+  return (
+    <div className="animate-fade-in">
+      <div className="flex gap-3">
+        <div className={`${avatarSize} rounded-full ${avatarStyle} flex-shrink-0 flex items-center justify-center`}>
+          <span className={`${textSize} font-bold`}>{initial}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm font-medium">{displayName}</span>
+            <span className="text-xs text-charcoal/40">{formatDate(comment.created_at)}</span>
+          </div>
+          <p className="text-sm text-charcoal/70 mt-1">{comment.content}</p>
+
+          {/* Acciones */}
+          <div className="flex items-center gap-4 mt-2">
+            {user && (
+              <button
+                onClick={() => onReply(comment)}
+                className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-terra transition-colors"
+              >
+                <Reply className="w-3.5 h-3.5" /> Responder
+              </button>
+            )}
+
+            {replies.length > 0 && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="flex items-center gap-1.5 text-xs font-medium text-terra hover:text-terra/80 transition-colors"
+              >
+                {expanded ? (
+                  <><ChevronUp className="w-3.5 h-3.5" /> Ocultar {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</>
+                ) : (
+                  <><ChevronDown className="w-3.5 h-3.5" /> Ver {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Respuestas anidadas (recursivo) */}
+      {expanded && replies.length > 0 && (
+        <div className={`${indent ? 'ml-6 sm:ml-10' : 'ml-3 sm:ml-6'} mt-3 space-y-3 border-l-2 border-charcoal/5 pl-4`}>
+          {replies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              allComments={allComments}
+              depth={depth + 1}
+              user={user}
+              onReply={onReply}
+              formatDate={formatDate}
+              getDisplayName={getDisplayName}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// Componente principal
+// ============================================
 export default function CommentSection({ recipeId, initialComments }: Props) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [newComment, setNewComment] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
-  const [replyMention, setReplyMention] = useState<string | null>(null);
-  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
-  const replyInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const supabase = createSupabaseBrowser();
 
@@ -70,11 +173,6 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
             if (prev.some((c) => c.id === newC.id)) return prev;
             return [...prev, newC];
           });
-
-          // Auto-expandir respuestas del comentario padre
-          if (newC.parent_id) {
-            setExpandedReplies((prev) => new Set(prev).add(newC.parent_id!));
-          }
         }
       )
       .subscribe();
@@ -82,62 +180,30 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
     return () => { supabase.removeChannel(channel); };
   }, [recipeId]);
 
-  // Enviar comentario o respuesta
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
 
     setSending(true);
-
-    // Si respondemos a una respuesta (no al comentario raíz), agregar @mención
-    const content = (replyingTo && replyMention && replyMention !== getDisplayName(replyingTo))
-      ? `@${replyMention} ${newComment.trim()}`
-      : newComment.trim();
-
     const { error } = await supabase
       .from('comments')
       .insert({
         recipe_id: recipeId,
         user_id: user.id,
-        content,
+        content: newComment.trim(),
         parent_id: replyingTo?.id ?? null,
       });
 
     if (!error) {
       setNewComment('');
       setReplyingTo(null);
-      setReplyMention(null);
     }
     setSending(false);
   };
 
-  // Responder a un comentario o a una respuesta (siempre en el mismo hilo)
-  const handleReply = (comment: Comment, mentionName?: string) => {
-    // Si es una respuesta, el parent_id apunta al comentario raíz
-    // Si es un comentario raíz, el parent_id es su propio id
-    const rootComment = comment.parent_id
-      ? comments.find((c) => c.id === comment.parent_id) ?? comment
-      : comment;
-
-    setReplyingTo(rootComment);
-    setReplyMention(mentionName ?? getDisplayName(comment));
-
-    // Auto-expandir las respuestas del hilo
-    setExpandedReplies((prev) => new Set(prev).add(rootComment.id));
-
-    setTimeout(() => replyInputRef.current?.focus(), 100);
-  };
-
-  const toggleReplies = (commentId: string) => {
-    setExpandedReplies((prev) => {
-      const next = new Set(prev);
-      if (next.has(commentId)) {
-        next.delete(commentId);
-      } else {
-        next.add(commentId);
-      }
-      return next;
-    });
+  const handleReply = (comment: Comment) => {
+    setReplyingTo(comment);
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const formatDate = (dateStr: string) => {
@@ -152,21 +218,17 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
       || 'Usuario';
   };
 
-  // Separar comentarios raíz y respuestas
+  // Solo comentarios raíz (sin parent)
   const rootComments = comments.filter((c) => !c.parent_id);
-  const getReplies = (parentId: string) =>
-    comments.filter((c) => c.parent_id === parentId);
-
-  const totalCount = comments.length;
 
   return (
     <div>
       <h3 className="font-display text-xl font-bold flex items-center gap-2 mb-6">
         <MessageCircle className="w-5 h-5 text-terra" />
-        Comentarios ({totalCount})
+        Comentarios ({comments.length})
       </h3>
 
-      {/* Lista de comentarios */}
+      {/* Árbol de comentarios */}
       <div className="space-y-5 mb-6">
         {rootComments.length === 0 && (
           <p className="text-charcoal/40 text-sm py-4">
@@ -174,115 +236,31 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
           </p>
         )}
 
-        {rootComments.map((comment) => {
-          const displayName = getDisplayName(comment);
-          const initial = displayName.charAt(0).toUpperCase();
-          const replies = getReplies(comment.id);
-          const isExpanded = expandedReplies.has(comment.id);
-
-          return (
-            <div key={comment.id} className="animate-fade-in">
-              {/* Comentario principal */}
-              <div className="flex gap-3">
-                <div className="w-9 h-9 rounded-full bg-sage/15 flex-shrink-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-sage">{initial}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-medium">{displayName}</span>
-                    <span className="text-xs text-charcoal/40">{formatDate(comment.created_at)}</span>
-                  </div>
-                  <p className="text-sm text-charcoal/70 mt-1">{comment.content}</p>
-
-                  {/* Botones */}
-                  <div className="flex items-center gap-4 mt-2">
-                    {user && (
-                      <button
-                        onClick={() => handleReply(comment)}
-                        className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-terra transition-colors"
-                      >
-                        <Reply className="w-3.5 h-3.5" /> Responder
-                      </button>
-                    )}
-
-                    {replies.length > 0 && (
-                      <button
-                        onClick={() => toggleReplies(comment.id)}
-                        className="flex items-center gap-1.5 text-xs font-medium text-terra hover:text-terra/80 transition-colors"
-                      >
-                        {isExpanded ? (
-                          <><ChevronUp className="w-3.5 h-3.5" /> Ocultar {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</>
-                        ) : (
-                          <><ChevronDown className="w-3.5 h-3.5" /> Ver {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Respuestas (colapsables) */}
-              {isExpanded && replies.length > 0 && (
-                <div className="ml-12 mt-3 space-y-3 border-l-2 border-charcoal/5 pl-4">
-                  {replies.map((reply) => {
-                    const replyName = getDisplayName(reply);
-                    const replyInitial = replyName.charAt(0).toUpperCase();
-
-                    // Detectar @mención al inicio del contenido
-                    const mentionMatch = reply.content.match(/^@(\S+)\s/);
-                    const mention = mentionMatch ? mentionMatch[1] : null;
-                    const replyContent = mention
-                      ? reply.content.slice(mentionMatch![0].length)
-                      : reply.content;
-
-                    return (
-                      <div key={reply.id} className="flex gap-3 animate-fade-in">
-                        <div className="w-7 h-7 rounded-full bg-terra/10 flex-shrink-0 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-terra">{replyInitial}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-sm font-medium">{replyName}</span>
-                            <span className="text-xs text-charcoal/40">{formatDate(reply.created_at)}</span>
-                          </div>
-                          <p className="text-sm text-charcoal/70 mt-1">
-                            {mention && (
-                              <span className="text-terra font-medium">@{mention} </span>
-                            )}
-                            {replyContent}
-                          </p>
-                          {/* Botón responder en respuestas */}
-                          {user && (
-                            <button
-                              onClick={() => handleReply(reply, replyName)}
-                              className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-terra transition-colors mt-1.5"
-                            >
-                              <Reply className="w-3 h-3" /> Responder
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {rootComments.map((comment) => (
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            allComments={comments}
+            depth={0}
+            user={user}
+            onReply={handleReply}
+            formatDate={formatDate}
+            getDisplayName={getDisplayName}
+          />
+        ))}
       </div>
 
       {/* Formulario */}
       {user ? (
         <div>
-          {/* Indicador de respuesta */}
           {replyingTo && (
             <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-terra/5 rounded-lg text-sm animate-fade-in">
               <Reply className="w-3.5 h-3.5 text-terra flex-shrink-0" />
               <span className="text-charcoal/60">
-                Respondiendo a <span className="font-medium text-charcoal">{replyMention ?? getDisplayName(replyingTo)}</span>
+                Respondiendo a <span className="font-medium text-charcoal">{getDisplayName(replyingTo)}</span>
               </span>
               <button
-                onClick={() => { setReplyingTo(null); setReplyMention(null); }}
+                onClick={() => setReplyingTo(null)}
                 className="ml-auto p-0.5 rounded hover:bg-charcoal/5 text-charcoal/40 hover:text-charcoal transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
@@ -292,11 +270,11 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
 
           <form onSubmit={handleSubmit} className="flex gap-3">
             <input
-              ref={replyInputRef}
+              ref={inputRef}
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder={replyingTo ? `Responder a ${replyMention ?? getDisplayName(replyingTo)}...` : 'Escribe un comentario...'}
+              placeholder={replyingTo ? `Responder a ${getDisplayName(replyingTo)}...` : 'Escribe un comentario...'}
               className="input-field flex-1"
               maxLength={500}
             />
