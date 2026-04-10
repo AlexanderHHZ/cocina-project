@@ -241,7 +241,27 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
         }`}>{message}</div>
       )}
 
-      {/* Formulario */}
+      {/* Squoosh - herramienta de compresión de imágenes */}
+      <a
+        href="https://squoosh.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 mb-6 px-4 py-3 rounded-xl border border-dashed border-terra/30
+                   bg-terra/[0.03] hover:bg-terra/[0.06] transition-colors group"
+      >
+        <div className="w-8 h-8 rounded-lg bg-terra/10 flex items-center justify-center flex-shrink-0">
+          <ImageIcon className="w-4 h-4 text-terra" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-charcoal group-hover:text-terra transition-colors">
+            Optimizar imágenes con Squoosh
+          </p>
+          <p className="text-xs text-charcoal/40">
+            Convierte y comprime tus imágenes a WebP antes de subirlas
+          </p>
+        </div>
+        <span className="text-xs text-terra font-medium flex-shrink-0">Abrir →</span>
+      </a>
       {showForm && (
         <div className="bg-white rounded-2xl border border-charcoal/5 p-6 mb-8 animate-slide-up">
           <div className="flex items-center justify-between mb-6">
