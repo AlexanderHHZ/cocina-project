@@ -118,6 +118,7 @@ export default function Navbar() {
   const navLinks = [
     { href: '/', label: 'Inicio' },
     { href: '/recetas', label: 'Recetas' },
+    { href: '/blog', label: 'Blog' },
     { href: '/sobre-mi', label: 'Sobre mí' },
     { href: '/contacto', label: 'Contacto' },
   ];

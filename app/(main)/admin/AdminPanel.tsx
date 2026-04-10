@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import {
-  Plus, Trash2, Edit3, Save, X, Image as ImageIcon, Youtube, ChefHat, Mail, Check,
+  Plus, Trash2, Edit3, Save, X, Image as ImageIcon, Youtube, ChefHat, Mail, Check, Newspaper,
 } from 'lucide-react';
-import type { Recipe } from '@/types';
+import type { Recipe, Post } from '@/types';
 
 type ContactMessage = {
   id: string;
@@ -35,13 +35,20 @@ const emptyForm: RecipeForm = {
 interface Props {
   initialRecipes: Recipe[];
   initialMessages: ContactMessage[];
+  initialPosts: Post[];
   userId: string;
 }
 
-export default function AdminPanel({ initialRecipes, initialMessages, userId }: Props) {
+export default function AdminPanel({ initialRecipes, initialMessages, initialPosts, userId }: Props) {
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
   const [messages, setMessages] = useState<ContactMessage[]>(initialMessages);
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [showForm, setShowForm] = useState(false);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [postContent, setPostContent] = useState('');
+  const [postImages, setPostImages] = useState<File[]>([]);
+  const [savingPost, setSavingPost] = useState(false);
+  const [postMessage, setPostMessage] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RecipeForm>(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -446,6 +453,153 @@ export default function AdminPanel({ initialRecipes, initialMessages, userId }: 
                   </button>
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ======== BLOG / PUBLICACIONES ======== */}
+      <div className="mt-16">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display text-2xl font-bold flex items-center gap-3">
+            <Newspaper className="w-6 h-6 text-terra" /> Publicaciones
+          </h2>
+          {!showPostForm && (
+            <button onClick={() => setShowPostForm(true)} className="btn-primary text-sm">
+              <Plus className="w-4 h-4" /> Nueva publicación
+            </button>
+          )}
+        </div>
+
+        {postMessage && (
+          <div className={`mb-4 p-3 rounded-lg text-sm animate-fade-in ${
+            postMessage.includes('Error') ? 'bg-wine/10 text-wine' : 'bg-sage/10 text-sage'
+          }`}>{postMessage}</div>
+        )}
+
+        {/* Formulario crear post */}
+        {showPostForm && (
+          <div className="bg-white rounded-2xl border border-charcoal/5 p-6 mb-6 animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display text-lg font-bold">Nueva publicación</h3>
+              <button onClick={() => { setShowPostForm(false); setPostContent(''); setPostImages([]); }}
+                className="p-2 hover:bg-charcoal/5 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <textarea
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+                placeholder="¿Qué quieres compartir?"
+                rows={4}
+                className="input-field resize-none"
+                maxLength={2000}
+              />
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  <ImageIcon className="w-4 h-4 inline mr-1" /> Imágenes
+                  <span className="text-charcoal/40 font-normal ml-1">(solo .webp, máximo 10)</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/webp,.webp"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    const valid = files.filter(f => f.type === 'image/webp');
+                    if (valid.length !== files.length) {
+                      setPostMessage('Error: Solo se permiten imágenes WebP');
+                    } else {
+                      setPostMessage('');
+                    }
+                    setPostImages(valid.slice(0, 10));
+                  }}
+                  className="input-field text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-terra/10 file:text-terra"
+                />
+                {postImages.length > 0 && (
+                  <p className="text-xs text-charcoal/40 mt-1">{postImages.length} imagen{postImages.length !== 1 ? 'es' : ''} seleccionada{postImages.length !== 1 ? 's' : ''}</p>
+                )}
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!postContent.trim()) { setPostMessage('Error: Escribe algo'); return; }
+                  setSavingPost(true);
+                  setPostMessage('');
+
+                  try {
+                    // Subir imágenes
+                    const imageUrls: string[] = [];
+                    for (const file of postImages) {
+                      const ext = file.name.split('.').pop();
+                      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                      const { error } = await supabase.storage.from('post-images').upload(path, file, { upsert: true });
+                      if (error) throw new Error(`Error al subir imagen: ${error.message}`);
+                      const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(path);
+                      imageUrls.push(urlData.publicUrl);
+                    }
+
+                    const { error } = await supabase.from('posts').insert({
+                      content: postContent.trim(),
+                      images: imageUrls,
+                      author_id: userId,
+                    });
+
+                    if (error) throw new Error(error.message);
+
+                    setPostMessage('Publicación creada');
+                    setPostContent('');
+                    setPostImages([]);
+                    setShowPostForm(false);
+
+                    // Recargar posts
+                    const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+                    setPosts(data ?? []);
+                    router.refresh();
+                  } catch (err: any) {
+                    setPostMessage(`Error: ${err.message}`);
+                  } finally {
+                    setSavingPost(false);
+                  }
+                }}
+                disabled={savingPost}
+                className="btn-primary"
+              >
+                <Save className="w-4 h-4" />
+                {savingPost ? 'Publicando...' : 'Publicar'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Lista de posts */}
+        <div className="space-y-3">
+          {posts.length === 0 && (
+            <p className="text-charcoal/40 text-center py-10">No hay publicaciones.</p>
+          )}
+          {posts.map((post) => (
+            <div key={post.id} className="bg-white rounded-xl border border-charcoal/5 p-4 flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm line-clamp-2">{post.content}</p>
+                <p className="text-xs text-charcoal/40 mt-1">
+                  {post.images.length} imagen{post.images.length !== 1 ? 'es' : ''} ·{' '}
+                  {new Date(post.created_at).toLocaleDateString('es-ES')}
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  if (!confirm('¿Eliminar esta publicación?')) return;
+                  await supabase.from('posts').delete().eq('id', post.id);
+                  setPosts(prev => prev.filter(p => p.id !== post.id));
+                  router.refresh();
+                }}
+                className="p-2 rounded-lg hover:bg-wine/5 transition-colors text-charcoal/50 hover:text-wine flex-shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           ))}
         </div>

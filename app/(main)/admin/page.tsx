@@ -28,5 +28,11 @@ export default async function AdminPage() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  return <AdminPanel initialRecipes={recipes ?? []} initialMessages={messages ?? []} userId={user.id} />;
+  // Cargar posts del blog
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  return <AdminPanel initialRecipes={recipes ?? []} initialMessages={messages ?? []} initialPosts={posts ?? []} userId={user.id} />;
 }

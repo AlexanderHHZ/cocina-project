@@ -59,3 +59,26 @@ export interface Favorite {
   // Join
   recipe?: Recipe;
 }
+
+export interface Post {
+  id: string;
+  content: string;
+  images: string[];
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  // Joins
+  likes_count?: number;
+  comments_count?: number;
+  author?: UserProfile;
+}
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  parent_id: string | null;
+  content: string;
+  created_at: string;
+  user?: UserProfile;
+}
