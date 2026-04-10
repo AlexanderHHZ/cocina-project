@@ -24,31 +24,57 @@ export default function Navbar() {
 
   const supabase = createSupabaseBrowser();
 
-  // Escuchar cambios de auth (incluye sesión inicial con INITIAL_SESSION)
+  // Escuchar cambios de auth
   useEffect(() => {
+    let isMounted = true;
+
+    // Función para cargar perfil admin
+    const loadAdminStatus = async (userId: string) => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single();
+      if (isMounted) setIsAdmin(profile?.is_admin ?? false);
+    };
+
+    // Listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isMounted) return;
         setUser(session?.user ?? null);
         setAuthLoading(false);
         if (session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', session.user.id)
-            .single();
-          setIsAdmin(profile?.is_admin ?? false);
+          loadAdminStatus(session.user.id);
         } else {
           setIsAdmin(false);
         }
       }
     );
 
-    // Seguridad: si después de 3s no ha respondido, quitar loading
-    const timeout = setTimeout(() => setAuthLoading(false), 3000);
+    // Fallback: si después de 1s no hay usuario detectado, reintentar con getSession
+    const retryTimeout = setTimeout(async () => {
+      if (!isMounted) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && isMounted) {
+        setUser(session.user);
+        setAuthLoading(false);
+        loadAdminStatus(session.user.id);
+      } else if (isMounted) {
+        setAuthLoading(false);
+      }
+    }, 1000);
+
+    // Seguridad absoluta: quitar loading después de 3s
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) setAuthLoading(false);
+    }, 3000);
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
-      clearTimeout(timeout);
+      clearTimeout(retryTimeout);
+      clearTimeout(safetyTimeout);
     };
   }, []);
 

@@ -21,15 +21,22 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
 
   // Escuchar estado de auth para mantener sincronizado
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user)).catch(() => {});
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Fallback: reintentar con getSession después de 1s
+    const retry = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) setUser(session.user);
+    }, 1000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(retry);
+    };
   }, []);
 
   // Suscripción realtime para nuevos comentarios
