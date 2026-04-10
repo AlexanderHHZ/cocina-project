@@ -24,7 +24,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: 'http://localhost:3000/auth/callback',
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 

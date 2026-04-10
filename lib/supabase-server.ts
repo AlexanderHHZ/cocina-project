@@ -7,15 +7,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Tipo para cookies (evita errores de TypeScript en producción)
-type CookieToSet = {
-  name: string;
-  value: string;
-  options?: any;
-};
-
-export function createSupabaseServer() {
-  const cookieStore = cookies();
+export async function createSupabaseServer() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,15 +18,14 @@ export function createSupabaseServer() {
         getAll() {
           return cookieStore.getAll();
         },
-
-        setAll(cookiesToSet: CookieToSet[]) {
+        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // En Server Components puede fallar (read-only cookies)
-            // Es normal, el middleware se encarga del refresh
+            // setAll puede fallar en Server Components (read-only).
+            // Esto es esperado — el middleware se encarga de refrescar.
           }
         },
       },
