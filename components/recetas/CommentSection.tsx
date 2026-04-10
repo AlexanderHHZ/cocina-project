@@ -17,6 +17,7 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
   const [user, setUser] = useState<User | null>(null);
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [replyMention, setReplyMention] = useState<string | null>(null);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const replyInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,24 +88,43 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
     if (!newComment.trim() || !user) return;
 
     setSending(true);
+
+    // Si respondemos a una respuesta (no al comentario raíz), agregar @mención
+    const content = (replyingTo && replyMention && replyMention !== getDisplayName(replyingTo))
+      ? `@${replyMention} ${newComment.trim()}`
+      : newComment.trim();
+
     const { error } = await supabase
       .from('comments')
       .insert({
         recipe_id: recipeId,
         user_id: user.id,
-        content: newComment.trim(),
+        content,
         parent_id: replyingTo?.id ?? null,
       });
 
     if (!error) {
       setNewComment('');
       setReplyingTo(null);
+      setReplyMention(null);
     }
     setSending(false);
   };
 
-  const handleReply = (comment: Comment) => {
-    setReplyingTo(comment);
+  // Responder a un comentario o a una respuesta (siempre en el mismo hilo)
+  const handleReply = (comment: Comment, mentionName?: string) => {
+    // Si es una respuesta, el parent_id apunta al comentario raíz
+    // Si es un comentario raíz, el parent_id es su propio id
+    const rootComment = comment.parent_id
+      ? comments.find((c) => c.id === comment.parent_id) ?? comment
+      : comment;
+
+    setReplyingTo(rootComment);
+    setReplyMention(mentionName ?? getDisplayName(comment));
+
+    // Auto-expandir las respuestas del hilo
+    setExpandedReplies((prev) => new Set(prev).add(rootComment.id));
+
     setTimeout(() => replyInputRef.current?.focus(), 100);
   };
 
@@ -208,6 +228,13 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
                     const replyName = getDisplayName(reply);
                     const replyInitial = replyName.charAt(0).toUpperCase();
 
+                    // Detectar @mención al inicio del contenido
+                    const mentionMatch = reply.content.match(/^@(\S+)\s/);
+                    const mention = mentionMatch ? mentionMatch[1] : null;
+                    const replyContent = mention
+                      ? reply.content.slice(mentionMatch![0].length)
+                      : reply.content;
+
                     return (
                       <div key={reply.id} className="flex gap-3 animate-fade-in">
                         <div className="w-7 h-7 rounded-full bg-terra/10 flex-shrink-0 flex items-center justify-center">
@@ -218,7 +245,21 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
                             <span className="text-sm font-medium">{replyName}</span>
                             <span className="text-xs text-charcoal/40">{formatDate(reply.created_at)}</span>
                           </div>
-                          <p className="text-sm text-charcoal/70 mt-1">{reply.content}</p>
+                          <p className="text-sm text-charcoal/70 mt-1">
+                            {mention && (
+                              <span className="text-terra font-medium">@{mention} </span>
+                            )}
+                            {replyContent}
+                          </p>
+                          {/* Botón responder en respuestas */}
+                          {user && (
+                            <button
+                              onClick={() => handleReply(reply, replyName)}
+                              className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-terra transition-colors mt-1.5"
+                            >
+                              <Reply className="w-3 h-3" /> Responder
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -238,10 +279,10 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
             <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-terra/5 rounded-lg text-sm animate-fade-in">
               <Reply className="w-3.5 h-3.5 text-terra flex-shrink-0" />
               <span className="text-charcoal/60">
-                Respondiendo a <span className="font-medium text-charcoal">{getDisplayName(replyingTo)}</span>
+                Respondiendo a <span className="font-medium text-charcoal">{replyMention ?? getDisplayName(replyingTo)}</span>
               </span>
               <button
-                onClick={() => setReplyingTo(null)}
+                onClick={() => { setReplyingTo(null); setReplyMention(null); }}
                 className="ml-auto p-0.5 rounded hover:bg-charcoal/5 text-charcoal/40 hover:text-charcoal transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
@@ -255,7 +296,7 @@ export default function CommentSection({ recipeId, initialComments }: Props) {
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder={replyingTo ? `Responder a ${getDisplayName(replyingTo)}...` : 'Escribe un comentario...'}
+              placeholder={replyingTo ? `Responder a ${replyMention ?? getDisplayName(replyingTo)}...` : 'Escribe un comentario...'}
               className="input-field flex-1"
               maxLength={500}
             />
