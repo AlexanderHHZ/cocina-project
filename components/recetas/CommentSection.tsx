@@ -31,7 +31,7 @@ function CommentItem({
   formatDate: (d: string) => string;
   getDisplayName: (c: Comment) => string;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   const replies = allComments.filter((c) => c.parent_id === comment.id);
   const displayName = getDisplayName(comment);
