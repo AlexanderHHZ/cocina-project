@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,7 +26,7 @@ function CommentMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () =>
   return (
     <div className="relative" ref={menuRef}>
       <button onClick={() => setOpen(!open)}
-        className="p-1 rounded-md text-charcoal/30 hover:text-charcoal/60 hover:bg-charcoal/5 transition-colors">
+        className="p-1 rounded-md text-charcoal/50 hover:text-charcoal hover:bg-charcoal/5 transition-colors">
         <MoreVertical className="w-3.5 h-3.5" />
       </button>
       {open && (
@@ -77,7 +76,7 @@ function CommentItem({
               <span className="text-xs text-charcoal/40">{formatDate(comment.created_at)}</span>
             </div>
             {isOwner && (
-              <div className="opacity-0 group-hover/comment:opacity-100 transition-opacity">
+              <div>
                 <CommentMenu onEdit={() => onEdit(comment)} onDelete={() => onDelete(comment.id)} />
               </div>
             )}
@@ -255,16 +254,16 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
               )}
               <form onSubmit={handleSubmit}>
                 <input ref={inputRef} type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={getPlaceholder()} className="input-field w-full !py-2 !text-sm mb-2" maxLength={500} />
+                  placeholder={getPlaceholder()} className="input-field w-full mb-3" maxLength={500} />
                 <div className="flex justify-end gap-2">
                   {newComment.trim() && (
                     <button type="button" onClick={handleCancel}
-                      className="px-3 py-1.5 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:bg-charcoal/5 rounded-lg transition-colors">
+                      className="px-4 py-2 text-sm font-medium text-charcoal/60 hover:text-charcoal hover:bg-charcoal/5 rounded-lg transition-colors">
                       Cancelar
                     </button>
                   )}
                   <button type="submit" disabled={sending || !newComment.trim()}
-                    className="btn-primary !px-3 !py-1.5 text-xs">
+                    className="btn-primary !py-2 text-sm">
                     {getSubmitLabel()}
                   </button>
                 </div>

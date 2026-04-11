@@ -36,7 +36,7 @@ function CommentMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="p-1 rounded-md text-charcoal/30 hover:text-charcoal/60 hover:bg-charcoal/5 transition-colors"
+        className="p-1 rounded-md text-charcoal/50 hover:text-charcoal hover:bg-charcoal/5 transition-colors"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
@@ -116,7 +116,7 @@ function CommentItem({
             </div>
             {/* Menú 3 puntos - solo para el autor del comentario */}
             {isOwner && (
-              <div className="opacity-0 group-hover/comment:opacity-100 transition-opacity">
+              <div>
                 <CommentMenu
                   onEdit={() => onEdit(comment)}
                   onDelete={() => onDelete(comment.id)}
