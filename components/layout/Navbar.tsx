@@ -261,7 +261,7 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* Menú móvil */}
+        {/* Menú móvil sd*/}
         {menuOpen && (
           <div className="lg:hidden pb-4 border-t border-charcoal/5 pt-3 animate-slide-up">
             <div className="flex flex-col gap-1">
