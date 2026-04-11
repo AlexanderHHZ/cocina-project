@@ -50,6 +50,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
   const [postVideoUrl, setPostVideoUrl] = useState('');
   const [savingPost, setSavingPost] = useState(false);
   const [postMessage, setPostMessage] = useState('');
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RecipeForm>(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -498,12 +499,12 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
           }`}>{postMessage}</div>
         )}
 
-        {/* Formulario crear post */}
+        {/* Formulario crear/editar post */}
         {showPostForm && (
           <div className="bg-white rounded-2xl border border-charcoal/5 p-6 mb-6 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display text-lg font-bold">Nueva publicación</h3>
-              <button onClick={() => { setShowPostForm(false); setPostContent(''); setPostImages([]); setPostVideoUrl(''); }}
+              <h3 className="font-display text-lg font-bold">{editingPostId ? 'Editar publicación' : 'Nueva publicación'}</h3>
+              <button onClick={() => { setShowPostForm(false); setPostContent(''); setPostImages([]); setPostVideoUrl(''); setEditingPostId(null); }}
                 className="p-2 hover:bg-charcoal/5 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
@@ -567,7 +568,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                   setPostMessage('');
 
                   try {
-                    // Subir imágenes
+                    // Subir imágenes nuevas (si hay)
                     const imageUrls: string[] = [];
                     for (const file of postImages) {
                       const ext = file.name.split('.').pop();
@@ -578,41 +579,38 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                       imageUrls.push(urlData.publicUrl);
                     }
 
-                    // Procesar URL de YouTube
-                    let videoEmbed: string | null = null;
-                    if (postVideoUrl.trim()) {
-                      const patterns = [
-                        /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
-                        /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-                        /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-                        /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
-                      ];
-                      let youtubeId: string | null = null;
-                      for (const pattern of patterns) {
-                        const match = postVideoUrl.match(pattern);
-                        if (match) { youtubeId = match[1]; break; }
+                    // Video de YouTube (guardar URL original)
+                    const videoUrl = postVideoUrl.trim() || null;
+
+                    if (editingPostId) {
+                      // Editar: solo actualizar contenido, video, y agregar nuevas imágenes
+                      const updateData: any = {
+                        content: postContent.trim(),
+                        video_url: videoUrl,
+                        updated_at: new Date().toISOString(),
+                      };
+                      // Solo actualizar imágenes si se subieron nuevas
+                      if (imageUrls.length > 0) {
+                        updateData.images = imageUrls;
                       }
-                      if (!youtubeId) {
-                        setPostMessage('Error: URL de YouTube no válida');
-                        setSavingPost(false);
-                        return;
-                      }
-                      videoEmbed = `https://www.youtube.com/embed/${youtubeId}`;
+                      const { error } = await supabase.from('posts').update(updateData).eq('id', editingPostId);
+                      if (error) throw new Error(error.message);
+                      setPostMessage('Publicación actualizada');
+                    } else {
+                      const { error } = await supabase.from('posts').insert({
+                        content: postContent.trim(),
+                        images: imageUrls,
+                        video_url: videoUrl,
+                        author_id: userId,
+                      });
+                      if (error) throw new Error(error.message);
+                      setPostMessage('Publicación creada');
                     }
 
-                    const { error } = await supabase.from('posts').insert({
-                      content: postContent.trim(),
-                      images: imageUrls,
-                      video_url: videoEmbed,
-                      author_id: userId,
-                    });
-
-                    if (error) throw new Error(error.message);
-
-                    setPostMessage('Publicación creada');
                     setPostContent('');
                     setPostImages([]);
                     setPostVideoUrl('');
+                    setEditingPostId(null);
                     setShowPostForm(false);
 
                     // Recargar posts
@@ -629,7 +627,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                 className="btn-primary"
               >
                 <Save className="w-4 h-4" />
-                {savingPost ? 'Publicando...' : 'Publicar'}
+                {savingPost ? 'Guardando...' : editingPostId ? 'Actualizar' : 'Publicar'}
               </button>
             </div>
           </div>
@@ -649,17 +647,31 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                   {new Date(post.created_at).toLocaleDateString('es-ES')}
                 </p>
               </div>
-              <button
-                onClick={async () => {
-                  if (!confirm('¿Eliminar esta publicación?')) return;
-                  await supabase.from('posts').delete().eq('id', post.id);
-                  setPosts(prev => prev.filter(p => p.id !== post.id));
-                  router.refresh();
-                }}
-                className="p-2 rounded-lg hover:bg-wine/5 transition-colors text-charcoal/50 hover:text-wine flex-shrink-0"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setEditingPostId(post.id);
+                    setPostContent(post.content);
+                    setPostVideoUrl(post.video_url ?? '');
+                    setPostImages([]);
+                    setShowPostForm(true);
+                  }}
+                  className="p-2 rounded-lg hover:bg-charcoal/5 transition-colors text-charcoal/50 hover:text-terra"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!confirm('¿Eliminar esta publicación?')) return;
+                    await supabase.from('posts').delete().eq('id', post.id);
+                    setPosts(prev => prev.filter(p => p.id !== post.id));
+                    router.refresh();
+                  }}
+                  className="p-2 rounded-lg hover:bg-wine/5 transition-colors text-charcoal/50 hover:text-wine"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -667,3 +679,4 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
     </div>
   );
 }
+
