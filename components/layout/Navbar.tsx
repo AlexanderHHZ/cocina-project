@@ -133,7 +133,7 @@ export default function Navbar() {
             <img
               src="/images/logo.webp"
               alt="Ingrediente 791"
-              className="h-20 w-auto"
+              className="h-[72px] w-auto"
             />
           </Link>
 
