@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
-import { Send, MessageCircle, Reply, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { MessageCircle, Reply, ChevronDown, ChevronUp, X, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import type { PostComment } from '@/types';
 import type { User } from '@supabase/supabase-js';
 
@@ -11,17 +12,53 @@ interface Props {
   initialComments: PostComment[];
 }
 
+function CommentMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button onClick={() => setOpen(!open)}
+        className="p-1 rounded-md text-charcoal/30 hover:text-charcoal/60 hover:bg-charcoal/5 transition-colors">
+        <MoreVertical className="w-3.5 h-3.5" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-6 w-28 bg-white rounded-lg shadow-lg border border-charcoal/10 py-1 z-10 animate-scale-in origin-top-right">
+          <button onClick={() => { onEdit(); setOpen(false); }}
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-charcoal/70 hover:bg-charcoal/5 transition-colors">
+            <Pencil className="w-3 h-3" /> Editar
+          </button>
+          <button onClick={() => { onDelete(); setOpen(false); }}
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-wine hover:bg-wine/5 transition-colors">
+            <Trash2 className="w-3 h-3" /> Eliminar
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CommentItem({
-  comment, allComments, depth, user, onReply, formatDate, getDisplayName,
+  comment, allComments, depth, user, onReply, onDelete, onEdit, formatDate, getDisplayName,
 }: {
   comment: PostComment; allComments: PostComment[]; depth: number;
   user: User | null; onReply: (c: PostComment) => void;
+  onDelete: (id: string) => void; onEdit: (c: PostComment) => void;
   formatDate: (d: string) => string; getDisplayName: (c: PostComment) => string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const replies = allComments.filter((c) => c.parent_id === comment.id);
   const displayName = getDisplayName(comment);
   const initial = displayName.charAt(0).toUpperCase();
+  const isOwner = user?.id === comment.user_id;
 
   const avatarStyles = ['bg-sage/15 text-sage', 'bg-terra/10 text-terra', 'bg-gold/10 text-gold'];
   const avatarStyle = avatarStyles[Math.min(depth, avatarStyles.length - 1)];
@@ -29,14 +66,21 @@ function CommentItem({
 
   return (
     <div>
-      <div className="flex gap-2.5">
+      <div className="flex gap-2.5 group/comment">
         <div className={`${avatarSize} rounded-full ${avatarStyle} flex-shrink-0 flex items-center justify-center`}>
           <span className="text-[10px] font-bold">{initial}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm font-medium">{displayName}</span>
-            <span className="text-xs text-charcoal/40">{formatDate(comment.created_at)}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium">{displayName}</span>
+              <span className="text-xs text-charcoal/40">{formatDate(comment.created_at)}</span>
+            </div>
+            {isOwner && (
+              <div className="opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                <CommentMenu onEdit={() => onEdit(comment)} onDelete={() => onDelete(comment.id)} />
+              </div>
+            )}
           </div>
           <p className="text-sm text-charcoal/70 mt-0.5">{comment.content}</p>
           <div className="flex items-center gap-3 mt-1.5">
@@ -61,7 +105,8 @@ function CommentItem({
         <div className={`${depth < 3 ? 'ml-5 sm:ml-8' : 'ml-3'} mt-2 space-y-2 border-l-2 border-charcoal/5 pl-3`}>
           {replies.map((r) => (
             <CommentItem key={r.id} comment={r} allComments={allComments} depth={depth + 1}
-              user={user} onReply={onReply} formatDate={formatDate} getDisplayName={getDisplayName} />
+              user={user} onReply={onReply} onDelete={onDelete} onEdit={onEdit}
+              formatDate={formatDate} getDisplayName={getDisplayName} />
           ))}
         </div>
       )}
@@ -75,6 +120,7 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
   const [user, setUser] = useState<User | null>(null);
   const [sending, setSending] = useState(false);
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
+  const [editingComment, setEditingComment] = useState<PostComment | null>(null);
   const [showComments, setShowComments] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = createSupabaseBrowser();
@@ -105,31 +151,74 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
     e.preventDefault();
     if (!newComment.trim() || !user) return;
     setSending(true);
-    const { error } = await supabase.from('post_comments').insert({
-      post_id: postId, user_id: user.id, content: newComment.trim(), parent_id: replyingTo?.id ?? null,
-    });
-    if (!error) { setNewComment(''); setReplyingTo(null); }
+
+    if (editingComment) {
+      const { error } = await supabase.from('post_comments').update({ content: newComment.trim() }).eq('id', editingComment.id);
+      if (!error) {
+        setComments((prev) => prev.map((c) => c.id === editingComment.id ? { ...c, content: newComment.trim() } : c));
+      }
+      setEditingComment(null);
+    } else {
+      const { error } = await supabase.from('post_comments').insert({
+        post_id: postId, user_id: user.id, content: newComment.trim(), parent_id: replyingTo?.id ?? null,
+      });
+      if (error) console.error('[PostComment] Error:', error);
+    }
+
+    setNewComment('');
+    setReplyingTo(null);
     setSending(false);
   };
 
   const handleReply = (comment: PostComment) => {
+    setEditingComment(null);
     setReplyingTo(comment);
     setShowComments(true);
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  const handleEdit = (comment: PostComment) => {
+    setReplyingTo(null);
+    setEditingComment(comment);
+    setNewComment(comment.content);
+    setShowComments(true);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Eliminar este comentario?')) return;
+    const { error } = await supabase.from('post_comments').delete().eq('id', id);
+    if (!error) {
+      setComments((prev) => prev.filter((c) => c.id !== id && c.parent_id !== id));
+    }
+  };
+
+  const handleCancel = () => {
+    setNewComment('');
+    setReplyingTo(null);
+    setEditingComment(null);
+  };
+
   const formatDate = (d: string) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   const getDisplayName = (c: PostComment) => c.user?.full_name?.trim() || c.user?.email?.split('@')[0] || 'Usuario';
-
   const rootComments = comments.filter((c) => !c.parent_id);
+
+  const getPlaceholder = () => {
+    if (editingComment) return 'Editar comentario...';
+    if (replyingTo) return `Responder a ${getDisplayName(replyingTo)}...`;
+    return 'Escribe un comentario...';
+  };
+
+  const getSubmitLabel = () => {
+    if (sending) return 'Enviando...';
+    if (editingComment) return 'Guardar';
+    return 'Comentar';
+  };
 
   return (
     <div>
-      {/* Toggle comentarios */}
-      <button
-        onClick={() => setShowComments(!showComments)}
-        className="flex items-center gap-1.5 text-sm text-charcoal/40 hover:text-charcoal transition-colors"
-      >
+      <button onClick={() => setShowComments(!showComments)}
+        className="flex items-center gap-1.5 text-sm text-charcoal/40 hover:text-charcoal transition-colors">
         <MessageCircle className="w-4 h-4" />
         <span>{comments.length} comentario{comments.length !== 1 ? 's' : ''}</span>
       </button>
@@ -142,27 +231,43 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
             )}
             {rootComments.map((c) => (
               <CommentItem key={c.id} comment={c} allComments={comments} depth={0}
-                user={user} onReply={handleReply} formatDate={formatDate} getDisplayName={getDisplayName} />
+                user={user} onReply={handleReply} onDelete={handleDelete} onEdit={handleEdit}
+                formatDate={formatDate} getDisplayName={getDisplayName} />
             ))}
           </div>
 
           {user ? (
             <div>
-              {replyingTo && (
+              {(replyingTo || editingComment) && (
                 <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-terra/5 rounded-lg text-xs animate-fade-in">
-                  <Reply className="w-3 h-3 text-terra" />
-                  <span className="text-charcoal/60">Respondiendo a <span className="font-medium text-charcoal">{getDisplayName(replyingTo)}</span></span>
-                  <button onClick={() => setReplyingTo(null)} className="ml-auto p-0.5 rounded hover:bg-charcoal/5">
+                  {editingComment
+                    ? <Pencil className="w-3 h-3 text-terra" />
+                    : <Reply className="w-3 h-3 text-terra" />}
+                  <span className="text-charcoal/60">
+                    {editingComment
+                      ? 'Editando comentario'
+                      : <>Respondiendo a <span className="font-medium text-charcoal">{getDisplayName(replyingTo!)}</span></>}
+                  </span>
+                  <button onClick={handleCancel} className="ml-auto p-0.5 rounded hover:bg-charcoal/5">
                     <X className="w-3 h-3 text-charcoal/40" />
                   </button>
                 </div>
               )}
-              <form onSubmit={handleSubmit} className="flex gap-2">
+              <form onSubmit={handleSubmit}>
                 <input ref={inputRef} type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={replyingTo ? `Responder...` : 'Escribe un comentario...'} className="input-field flex-1 !py-2 !text-sm" maxLength={500} />
-                <button type="submit" disabled={sending || !newComment.trim()} className="btn-primary !px-3 !py-2">
-                  <Send className="w-3.5 h-3.5" />
-                </button>
+                  placeholder={getPlaceholder()} className="input-field w-full !py-2 !text-sm mb-2" maxLength={500} />
+                <div className="flex justify-end gap-2">
+                  {newComment.trim() && (
+                    <button type="button" onClick={handleCancel}
+                      className="px-3 py-1.5 text-xs font-medium text-charcoal/60 hover:text-charcoal hover:bg-charcoal/5 rounded-lg transition-colors">
+                      Cancelar
+                    </button>
+                  )}
+                  <button type="submit" disabled={sending || !newComment.trim()}
+                    className="btn-primary !px-3 !py-1.5 text-xs">
+                    {getSubmitLabel()}
+                  </button>
+                </div>
               </form>
             </div>
           ) : (
