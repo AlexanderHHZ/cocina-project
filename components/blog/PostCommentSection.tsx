@@ -121,7 +121,7 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
   const [editingComment, setEditingComment] = useState<PostComment | null>(null);
   const [showComments, setShowComments] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createSupabaseBrowser();
 
   useEffect(() => {
@@ -253,8 +253,8 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
                 </div>
               )}
               <form onSubmit={handleSubmit}>
-                <input ref={inputRef} type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={getPlaceholder()} className="input-field w-full mb-3" maxLength={500} />
+                <textarea ref={inputRef} value={newComment} onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={getPlaceholder()} className="input-field w-full mb-3 resize-none" maxLength={500} rows={6} />
                 <div className="flex justify-end gap-2">
                   {newComment.trim() && (
                     <button type="button" onClick={handleCancel}
