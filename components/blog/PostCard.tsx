@@ -113,14 +113,16 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
 
       {/* Acciones */}
       <div className="border-t border-charcoal/5">
-        <div className="px-4 py-3 flex items-center gap-6">
-          <PostLikeButton
-            key={`postlike-${stateKey}`}
-            postId={post.id}
-            userId={userId}
-            initialLiked={isLiked}
-            initialCount={likesCount}
-          />
+        <div className="px-4 py-3 flex items-start gap-6">
+          <div className="pt-0.5">
+            <PostLikeButton
+              key={`postlike-${stateKey}`}
+              postId={post.id}
+              userId={userId}
+              initialLiked={isLiked}
+              initialCount={likesCount}
+            />
+          </div>
           <PostCommentSection
             postId={post.id}
             initialComments={comments}
@@ -130,4 +132,3 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
     </article>
   );
 }
-
