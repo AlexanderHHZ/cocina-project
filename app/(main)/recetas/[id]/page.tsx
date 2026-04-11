@@ -146,6 +146,22 @@ export default async function RecipeDetailPage({ params }: Props) {
         />
       </div>
 
+      {/* Video de YouTube */}
+      {recipe.video_url && (
+        <div className="mb-10">
+          <h2 className="font-display text-lg font-bold mb-4">Video</h2>
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-charcoal/5">
+            <iframe
+              src={recipe.video_url}
+              title={`Video: ${recipe.title}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Contenido */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
         {/* Ingredientes */}
@@ -180,22 +196,6 @@ export default async function RecipeDetailPage({ params }: Props) {
           </div>
         </div>
       </div>
-
-      {/* Video de YouTube */}
-      {recipe.video_url && (
-        <div className="mb-12">
-          <h2 className="font-display text-lg font-bold mb-4">Video</h2>
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-charcoal/5">
-            <iframe
-              src={recipe.video_url}
-              title={`Video: ${recipe.title}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-            />
-          </div>
-        </div>
-      )}
 
       {/* Comentarios */}
       <div className="border-t border-charcoal/5 pt-10">
