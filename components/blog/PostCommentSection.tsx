@@ -121,7 +121,7 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
   const [replyingTo, setReplyingTo] = useState<PostComment | null>(null);
   const [editingComment, setEditingComment] = useState<PostComment | null>(null);
   const [showComments, setShowComments] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createSupabaseBrowser();
 
   useEffect(() => {
@@ -215,7 +215,7 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
   };
 
   return (
-    <div>
+    <div className="flex-1">
       <button onClick={() => setShowComments(!showComments)}
         className="flex items-center gap-1.5 text-sm text-charcoal/40 hover:text-charcoal transition-colors">
         <MessageCircle className="w-4 h-4" />
@@ -223,7 +223,7 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
       </button>
 
       {showComments && (
-        <div className="mt-4 animate-fade-in">
+        <div className="mt-4 -mx-4 px-4 pt-3 border-t border-charcoal/5 animate-fade-in">
           <div className="space-y-3 mb-4">
             {rootComments.length === 0 && (
               <p className="text-charcoal/40 text-xs">Sé el primero en comentar.</p>
@@ -238,23 +238,23 @@ export default function PostCommentSection({ postId, initialComments }: Props) {
           {user ? (
             <div>
               {(replyingTo || editingComment) && (
-                <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-terra/5 rounded-lg text-xs animate-fade-in">
+                <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-terra/5 rounded-lg text-sm animate-fade-in">
                   {editingComment
-                    ? <Pencil className="w-3 h-3 text-terra" />
-                    : <Reply className="w-3 h-3 text-terra" />}
+                    ? <Pencil className="w-3.5 h-3.5 text-terra" />
+                    : <Reply className="w-3.5 h-3.5 text-terra" />}
                   <span className="text-charcoal/60">
                     {editingComment
                       ? 'Editando comentario'
                       : <>Respondiendo a <span className="font-medium text-charcoal">{getDisplayName(replyingTo!)}</span></>}
                   </span>
                   <button onClick={handleCancel} className="ml-auto p-0.5 rounded hover:bg-charcoal/5">
-                    <X className="w-3 h-3 text-charcoal/40" />
+                    <X className="w-3.5 h-3.5 text-charcoal/40" />
                   </button>
                 </div>
               )}
               <form onSubmit={handleSubmit}>
-                <input ref={inputRef} type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={getPlaceholder()} className="input-field w-full mb-3" maxLength={500} />
+                <textarea ref={inputRef} value={newComment} onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={getPlaceholder()} className="input-field w-full mb-3 resize-none" maxLength={500} rows={3} />
                 <div className="flex justify-end gap-2">
                   {newComment.trim() && (
                     <button type="button" onClick={handleCancel}
