@@ -12,7 +12,7 @@ export default function MainLayout({
       <Suspense fallback={null}>
         <Navbar />
       </Suspense>
-      <main className="pt-16 min-h-screen">
+      <main className="pt-24 min-h-screen">
         {children}
       </main>
       <Footer />

@@ -1,4 +1,3 @@
-import { ChefHat } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Footer() {
@@ -8,9 +7,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <ChefHat className="w-6 h-6 text-terra" />
-              <span className="font-display text-lg font-bold text-white">Mi Cocina</span>
+            <div className="mb-3">
+              <img
+                src="/images/logo.webp"
+                alt="Ingrediente 791"
+                className="h-12 w-auto brightness-0 invert"
+              />
             </div>
             <p className="text-sm leading-relaxed">
               Recetas caseras con amor, compartidas para inspirar tu mesa de cada día.
