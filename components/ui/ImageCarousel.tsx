@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -11,6 +11,8 @@ interface Props {
 
 export default function ImageCarousel({ images, alt }: Props) {
   const [current, setCurrent] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   if (images.length === 0) return null;
 
@@ -34,8 +36,35 @@ export default function ImageCarousel({ images, alt }: Props) {
   const prev = () => setCurrent((c) => (c === 0 ? images.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50; // mínimo de pixeles para considerar swipe
+
+    if (diff > threshold) {
+      // Swipe izquierda → siguiente
+      next();
+    } else if (diff < -threshold) {
+      // Swipe derecha → anterior
+      prev();
+    }
+  };
+
   return (
-    <div className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden bg-charcoal/5 group">
+    <div
+      className="relative aspect-square sm:aspect-[4/3] rounded-xl overflow-hidden bg-charcoal/5 group touch-pan-y"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Imagen actual */}
       <Image
         src={images[current]}
@@ -48,11 +77,11 @@ export default function ImageCarousel({ images, alt }: Props) {
         blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlNWRmIi8+PC9zdmc+"
       />
 
-      {/* Flechas */}
+      {/* Flechas - visibles en hover (desktop) y siempre en móvil */}
       <button
         onClick={prev}
         className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white
-                   flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity
+                   flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity
                    hover:bg-black/60 active:scale-95"
         aria-label="Anterior"
       >
@@ -61,7 +90,7 @@ export default function ImageCarousel({ images, alt }: Props) {
       <button
         onClick={next}
         className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white
-                   flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity
+                   flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity
                    hover:bg-black/60 active:scale-95"
         aria-label="Siguiente"
       >
@@ -89,3 +118,4 @@ export default function ImageCarousel({ images, alt }: Props) {
     </div>
   );
 }
+
