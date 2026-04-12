@@ -173,7 +173,7 @@ export default function Navbar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  placeholder="Buscar por nombre o ingrediente"
+                  placeholder="Buscar recetas..."
                   className={`w-full h-10 border border-charcoal/15 bg-white rounded-l-[18px]
                              text-sm placeholder:text-charcoal/40
                              focus:outline-none transition-all duration-200
@@ -260,11 +260,21 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <Link href="/login" className="text-base font-medium text-white bg-terra px-6 py-2.5 rounded-full
-                                             hover:bg-terra/90 hover:shadow-lg hover:shadow-terra/20
-                                             active:scale-[0.98] transition-all">
-                Iniciar sesión
-              </Link>
+              <>
+                {/* Desktop: botón texto */}
+                <Link href="/login" className="hidden sm:block text-base font-medium text-white bg-terra px-6 py-2.5 rounded-full
+                                               hover:bg-terra/90 hover:shadow-lg hover:shadow-terra/20
+                                               active:scale-[0.98] transition-all">
+                  Iniciar sesión
+                </Link>
+                {/* Móvil: avatar genérico */}
+                <Link href="/login" className="sm:hidden">
+                  <div className="w-9 h-9 rounded-full bg-charcoal/10 flex items-center justify-center
+                                  hover:bg-charcoal/15 transition-colors">
+                    <User className="w-5 h-5 text-charcoal/50" />
+                  </div>
+                </Link>
+              </>
             )}
 
             {/* Hamburguesa móvil */}
