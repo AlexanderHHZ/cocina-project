@@ -17,7 +17,9 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const desktopSearchRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -133,7 +135,7 @@ export default function Navbar() {
             <img
               src="/images/logo.webp"
               alt="Ingrediente 791"
-              className="h-[72px] w-auto"
+              className="h-20 w-auto"
             />
           </Link>
 
@@ -152,19 +154,53 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Buscador siempre visible en desktop */}
-          <div className="hidden md:block flex-1 max-w-md mx-6">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-charcoal/30" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar recetas..."
-                className="w-full pl-12 pr-5 py-2.5 rounded-full border border-charcoal/10 bg-white/60
-                           text-base placeholder:text-charcoal/35 focus:outline-none focus:ring-2
-                           focus:ring-terra/20 focus:border-terra/30 transition-all"
-              />
+          {/* Buscador estilo YouTube - desktop */}
+          <div className="hidden md:block flex-1 max-w-lg mx-6">
+            <form onSubmit={handleSearch} className="flex">
+              <div className={`relative flex-1 transition-all duration-200 ${
+                searchFocused ? 'ring-2 ring-terra/30 rounded-l-[18px]' : ''
+              }`}>
+                {/* Lupa izquierda - aparece con focus */}
+                <div className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-all duration-200 ${
+                  searchFocused ? 'opacity-100 w-5' : 'opacity-0 w-0'
+                }`}>
+                  <Search className="w-5 h-5 text-charcoal/40" />
+                </div>
+                <input
+                  ref={desktopSearchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  placeholder="Buscar por nombre o ingrediente"
+                  className={`w-full h-10 border border-charcoal/15 bg-white rounded-l-[18px]
+                             text-sm placeholder:text-charcoal/40
+                             focus:outline-none transition-all duration-200
+                             ${searchFocused ? 'pl-11 pr-9' : 'pl-4 pr-9'}
+                             border-r-0`}
+                />
+                {/* Botón X para limpiar */}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchQuery(''); desktopSearchRef.current?.focus(); }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full
+                               text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-all animate-fade-in"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {/* Botón buscar */}
+              <button
+                type="submit"
+                className="h-10 px-5 bg-charcoal/[0.06] border border-charcoal/15 border-l-0 rounded-r-[18px]
+                           hover:bg-charcoal/[0.1] transition-colors flex items-center justify-center"
+                aria-label="Buscar"
+              >
+                <Search className="w-5 h-5 text-charcoal/60" />
+              </button>
             </form>
           </div>
 
@@ -245,23 +281,43 @@ export default function Navbar() {
         {/* Barra de búsqueda móvil expandible */}
         {searchOpen && (
           <div className="md:hidden pb-3 animate-slide-up">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30" />
-              <input
-                ref={searchRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar recetas, ingredientes..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-full border border-charcoal/10 bg-white/60
-                           text-sm placeholder:text-charcoal/35 focus:outline-none focus:ring-2
-                           focus:ring-terra/20 focus:border-terra/30 transition-all"
-              />
+            <form onSubmit={handleSearch} className="flex">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar recetas..."
+                  className="w-full h-10 pl-10 pr-9 border border-charcoal/15 bg-white rounded-l-[18px]
+                             text-sm placeholder:text-charcoal/40 focus:outline-none focus:ring-2
+                             focus:ring-terra/30 border-r-0 transition-all"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchQuery(''); searchRef.current?.focus(); }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full
+                               text-charcoal/40 hover:text-charcoal transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="h-10 px-4 bg-charcoal/[0.06] border border-charcoal/15 border-l-0 rounded-r-[18px]
+                           hover:bg-charcoal/[0.1] transition-colors flex items-center justify-center"
+                aria-label="Buscar"
+              >
+                <Search className="w-4 h-4 text-charcoal/60" />
+              </button>
             </form>
           </div>
         )}
 
-        {/* Menú móvil sd*/}
+        {/* Menú móvil */}
         {menuOpen && (
           <div className="lg:hidden pb-4 border-t border-charcoal/5 pt-3 animate-slide-up">
             <div className="flex flex-col gap-1">
