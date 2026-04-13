@@ -103,6 +103,41 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
     return urlData.publicUrl;
   };
 
+  // Convertir imagen (Blob) a WebP usando Canvas
+  const convertToWebP = (blob: Blob, maxWidth?: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width;
+        let h = img.height;
+
+        if (maxWidth && w > maxWidth) {
+          h = Math.round((h * maxWidth) / w);
+          w = maxWidth;
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('No canvas context')); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+
+        canvas.toBlob(
+          (result) => {
+            if (result) resolve(result);
+            else reject(new Error('Error al convertir a WebP'));
+          },
+          'image/webp',
+          0.85
+        );
+      };
+      img.onerror = () => reject(new Error('Error al cargar imagen'));
+      img.crossOrigin = 'anonymous';
+      img.src = URL.createObjectURL(blob);
+    });
+  };
+
   // Validar que el archivo sea WebP
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,12 +182,23 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
     setMessage('');
 
     try {
-      // Subir imagen WebP si hay
+      // Procesar URL de YouTube primero (necesitamos el ID para las miniaturas)
+      let video_url: string | null = null;
+      let youtubeId: string | null = null;
+      if (form.video_url.trim()) {
+        youtubeId = extractYoutubeId(form.video_url);
+        if (!youtubeId) {
+          setMessage('Error: URL de YouTube no válida. Usa un enlace como https://www.youtube.com/watch?v=XXXXX');
+          setSaving(false);
+          return;
+        }
+        video_url = `https://www.youtube.com/embed/${youtubeId}`;
+      }
+
+      // Subir imagen principal WebP si hay
       let image_url: string | null = null;
       if (imageFile) {
-        console.log('[Admin] Subiendo imagen...');
         image_url = await uploadFile(imageFile, 'recipe-images');
-        console.log('[Admin] Imagen subida:', image_url);
       }
 
       // Subir miniatura WebP si hay
@@ -161,16 +207,55 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
         thumbnail_url = await uploadFile(thumbnailFile, 'recipe-images');
       }
 
-      // Procesar URL de YouTube
-      let video_url: string | null = null;
-      if (form.video_url.trim()) {
-        const youtubeId = extractYoutubeId(form.video_url);
-        if (!youtubeId) {
-          setMessage('Error: URL de YouTube no válida. Usa un enlace como https://www.youtube.com/watch?v=XXXXX');
-          setSaving(false);
-          return;
+      // Si hay YouTube y faltan imágenes, extraer miniatura automáticamente
+      if (youtubeId) {
+        const needsImage = !image_url && !imageFile;
+        const needsThumbnail = !thumbnail_url && !thumbnailFile;
+
+        if (needsImage || needsThumbnail) {
+          // Intentar maxresdefault primero, luego hqdefault
+          const urls = [
+            `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`,
+            `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+          ];
+
+          let blob: Blob | null = null;
+          for (const url of urls) {
+            try {
+              const res = await fetch(url);
+              if (res.ok) {
+                blob = await res.blob();
+                if (blob.size > 5000) break;
+                blob = null;
+              }
+            } catch { continue; }
+          }
+
+          if (blob) {
+            // Convertir a WebP usando Canvas
+            const webpBlob = await convertToWebP(blob);
+
+            if (needsImage) {
+              const path = `yt-img-${youtubeId}-${Date.now()}.webp`;
+              const { error } = await supabase.storage.from('recipe-images').upload(path, webpBlob, { upsert: true, contentType: 'image/webp' });
+              if (!error) {
+                const { data: urlData } = supabase.storage.from('recipe-images').getPublicUrl(path);
+                image_url = urlData.publicUrl;
+              }
+            }
+
+            if (needsThumbnail) {
+              // Crear versión más pequeña para miniatura
+              const thumbBlob = await convertToWebP(blob, 640);
+              const path = `yt-thumb-${youtubeId}-${Date.now()}.webp`;
+              const { error } = await supabase.storage.from('recipe-images').upload(path, thumbBlob, { upsert: true, contentType: 'image/webp' });
+              if (!error) {
+                const { data: urlData } = supabase.storage.from('recipe-images').getPublicUrl(path);
+                thumbnail_url = urlData.publicUrl;
+              }
+            }
+          }
         }
-        video_url = `https://www.youtube.com/embed/${youtubeId}`;
       }
 
       const recipeData = {
@@ -417,6 +502,12 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                 className="input-field"
                 placeholder="https://www.youtube.com/watch?v=..."
               />
+              {form.video_url.trim() && extractYoutubeId(form.video_url) && (
+                <p className="text-xs text-sage mt-1.5 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+                  Si no subes imágenes, se extraerán automáticamente de YouTube en WebP
+                </p>
+              )}
             </div>
 
             <button type="submit" disabled={saving} className="btn-primary">
