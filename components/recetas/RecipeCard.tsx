@@ -17,10 +17,10 @@ export default function RecipeCard({ recipe }: Props) {
   return (
     <Link href={`/recetas/${recipe.slug}`} className="card group block">
       {/* Imagen */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-charcoal/5">
-        {recipe.image_url ? (
+      <div className="relative aspect-video overflow-hidden bg-charcoal/5">
+        {(recipe.thumbnail_url || recipe.image_url) ? (
           <Image
-            src={recipe.image_url}
+            src={recipe.thumbnail_url || recipe.image_url!}
             alt={recipe.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"

@@ -12,6 +12,7 @@ export interface Recipe {
   prep_time: number;       // minutos
   difficulty: 'fácil' | 'media' | 'difícil';
   image_url: string | null;
+  thumbnail_url: string | null;
   video_url: string | null;
   author_id: string;
   created_at: string;

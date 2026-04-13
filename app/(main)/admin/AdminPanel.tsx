@@ -54,6 +54,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RecipeForm>(emptyForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -121,6 +122,25 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
     setImageFile(file);
   };
 
+  // Validar que la miniatura sea WebP
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setThumbnailFile(null);
+      return;
+    }
+
+    if (file.type !== 'image/webp') {
+      setMessage('Error: Solo se permiten imágenes en formato WebP (.webp)');
+      e.target.value = '';
+      setThumbnailFile(null);
+      return;
+    }
+
+    setMessage('');
+    setThumbnailFile(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -133,6 +153,12 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
         console.log('[Admin] Subiendo imagen...');
         image_url = await uploadFile(imageFile, 'recipe-images');
         console.log('[Admin] Imagen subida:', image_url);
+      }
+
+      // Subir miniatura WebP si hay
+      let thumbnail_url: string | null = null;
+      if (thumbnailFile) {
+        thumbnail_url = await uploadFile(thumbnailFile, 'recipe-images');
       }
 
       // Procesar URL de YouTube
@@ -157,6 +183,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
         difficulty: form.difficulty,
         author_id: userId,
         ...(image_url && { image_url }),
+        ...(thumbnail_url && { thumbnail_url }),
         video_url: video_url,
       };
 
@@ -221,6 +248,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
     setForm(emptyForm);
     setEditingId(null);
     setImageFile(null);
+    setThumbnailFile(null);
     setShowForm(false);
   };
 
@@ -345,7 +373,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Imagen - solo WebP */}
+              {/* Imagen principal */}
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <ImageIcon className="w-4 h-4 inline mr-1" /> Imagen principal
@@ -357,22 +385,38 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                   onChange={handleImageChange}
                   className="input-field text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-terra/10 file:text-terra"
                 />
+                <p className="text-xs text-charcoal/30 mt-1">Se ve al entrar a la receta. Recomendado: 1280 × 720px</p>
               </div>
 
-              {/* Video - URL de YouTube */}
+              {/* Miniatura */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  <Youtube className="w-4 h-4 inline mr-1" /> Video de YouTube
-                  <span className="text-charcoal/40 font-normal ml-1">(opcional)</span>
+                  <ImageIcon className="w-4 h-4 inline mr-1" /> Miniatura
+                  <span className="text-charcoal/40 font-normal ml-1">(solo .webp)</span>
                 </label>
                 <input
-                  type="url"
-                  value={form.video_url}
-                  onChange={(e) => setForm({ ...form, video_url: e.target.value })}
-                  className="input-field"
-                  placeholder="https://www.youtube.com/watch?v=..."
+                  type="file"
+                  accept="image/webp,.webp"
+                  onChange={handleThumbnailChange}
+                  className="input-field text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:bg-terra/10 file:text-terra"
                 />
+                <p className="text-xs text-charcoal/30 mt-1">Se ve en la tarjeta de recetas. Recomendado: 640 × 360px</p>
               </div>
+            </div>
+
+            {/* Video - URL de YouTube */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                <Youtube className="w-4 h-4 inline mr-1" /> Video de YouTube
+                <span className="text-charcoal/40 font-normal ml-1">(opcional)</span>
+              </label>
+              <input
+                type="url"
+                value={form.video_url}
+                onChange={(e) => setForm({ ...form, video_url: e.target.value })}
+                className="input-field"
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
             </div>
 
             <button type="submit" disabled={saving} className="btn-primary">
@@ -679,4 +723,3 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
     </div>
   );
 }
-
