@@ -173,7 +173,7 @@ export default function Navbar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  placeholder="Buscar por nombre o ingrediente"
+                  placeholder="Buscar recetas por nombre o ingrediente"
                   className={`w-full h-10 border border-charcoal/15 bg-white rounded-l-[18px]
                              text-sm placeholder:text-charcoal/40
                              focus:outline-none transition-all duration-200
