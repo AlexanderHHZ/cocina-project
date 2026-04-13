@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
-import { ChefHat, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -34,16 +34,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-cream via-terra/5 to-cream">
+    <div className="flex justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <ChefHat className="w-8 h-8 text-terra" />
-            <span className="font-display text-2xl font-bold">Mi Cocina</span>
-          </Link>
-        </div>
-
         <div className="bg-white rounded-2xl shadow-lg border border-charcoal/5 p-8">
           <h1 className="font-display text-2xl font-bold text-center mb-6">Iniciar sesión</h1>
 
@@ -81,7 +73,7 @@ export default function LoginPage() {
             </div>
             <button type="submit" disabled={loading} className="btn-primary w-full">
               <LogIn className="w-4 h-4" />
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Entrando...' : 'Iniciar sesión'}
             </button>
           </form>
 

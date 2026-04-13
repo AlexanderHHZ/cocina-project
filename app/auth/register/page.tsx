@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
-import { ChefHat, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -17,6 +18,12 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signUp({
@@ -37,15 +44,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-cream via-sage/5 to-cream">
+    <div className="flex justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <ChefHat className="w-8 h-8 text-terra" />
-            <span className="font-display text-2xl font-bold">Mi Cocina</span>
-          </Link>
-        </div>
-
         <div className="bg-white rounded-2xl shadow-lg border border-charcoal/5 p-8">
           {success ? (
             <div className="text-center py-4 animate-fade-in">
@@ -55,7 +55,7 @@ export default function RegisterPage() {
               <h2 className="font-display text-xl font-bold mb-2">¡Cuenta creada!</h2>
               <p className="text-sm text-charcoal/60 mb-4">
                 Revisa tu email para confirmar tu cuenta. Si tienes habilitada la opción
-                "Confirm email" en Supabase, recibirás un enlace. Si no, ya puedes
+                &quot;Confirm email&quot; en Supabase, recibirás un enlace. Si no, ya puedes
                 iniciar sesión.
               </p>
               <Link href="/login" className="btn-primary">
@@ -78,6 +78,8 @@ export default function RegisterPage() {
                   <input
                     id="name"
                     type="text"
+                    required
+                    minLength={2}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="input-field"
@@ -106,6 +108,19 @@ export default function RegisterPage() {
                     required
                     className="input-field"
                     placeholder="Mínimo 6 caracteres"
+                    minLength={6}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">Confirmar contraseña</label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="input-field"
+                    placeholder="Repite tu contraseña"
                     minLength={6}
                   />
                 </div>
