@@ -7,7 +7,7 @@ export default function SobreMiPage() {
 
       <div className="prose-like space-y-6 text-charcoal/70 leading-relaxed">
         <p className="text-lg">
-          ¡Hola! Soy el chef detrás de <span className="text-terra font-medium">Mi Cocina</span>.
+          ¡Hola! Soy el chef detrás de <span className="text-terra font-medium">Ingrediente 791</span>.
           Mi pasión por la gastronomía nació en la cocina de mi abuela, donde los aromas
           de guisos lentos y pan recién horneado llenaban la casa cada fin de semana.
         </p>
