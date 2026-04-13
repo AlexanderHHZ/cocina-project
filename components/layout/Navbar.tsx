@@ -158,13 +158,13 @@ export default function Navbar() {
           <div className="hidden md:block flex-1 max-w-lg mx-6">
             <form onSubmit={handleSearch} className="flex">
               <div className={`relative flex-1 transition-all duration-200 ${
-                searchFocused ? 'ring-2 ring-terra/30 rounded-l-[18px]' : ''
+                searchFocused ? 'ring-2 ring-terra/30 rounded-l-[20px]' : ''
               }`}>
                 {/* Lupa izquierda - aparece con focus */}
                 <div className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-all duration-200 ${
                   searchFocused ? 'opacity-100 w-5' : 'opacity-0 w-0'
                 }`}>
-                  <Search className="w-5 h-5 text-charcoal/40" />
+                  <Search className="w-6 h-6 text-charcoal/40" />
                 </div>
                 <input
                   ref={desktopSearchRef}
@@ -174,10 +174,10 @@ export default function Navbar() {
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
                   placeholder="Buscar por título o ingrediente..."
-                  className={`w-full h-10 border border-charcoal/15 bg-white rounded-l-[18px]
+                  className={`w-full h-12 border border-charcoal/15 bg-white rounded-l-[18px]
                              text-sm placeholder:text-charcoal/40
                              focus:outline-none transition-all duration-200
-                             ${searchFocused ? 'pl-11 pr-9' : 'pl-4 pr-9'}
+                             ${searchFocused ? 'pl-12 pr-10' : 'pl-5 pr-10'}
                              border-r-0`}
                 />
                 {/* Botón X para limpiar */}
@@ -188,18 +188,18 @@ export default function Navbar() {
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full
                                text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-all animate-fade-in"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                 )}
               </div>
               {/* Botón buscar */}
               <button
                 type="submit"
-                className="h-10 px-5 bg-charcoal/[0.06] border border-charcoal/15 border-l-0 rounded-r-[18px]
+                className="h-12 px-5 bg-charcoal/[0.06] border border-charcoal/15 border-l-0 rounded-r-[18px]
                            hover:bg-charcoal/[0.1] transition-colors flex items-center justify-center"
                 aria-label="Buscar"
               >
-                <Search className="w-5 h-5 text-charcoal/60" />
+                <Search className="w-6 h-6 text-charcoal/60" />
               </button>
             </form>
           </div>
