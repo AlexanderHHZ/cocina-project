@@ -23,13 +23,14 @@ type RecipeForm = {
   ingredients: string;
   steps: string;
   prep_time: number;
+  servings: number;
   difficulty: 'fácil' | 'media' | 'difícil';
   video_url: string;
 };
 
 const emptyForm: RecipeForm = {
   title: '', description: '', ingredients: '', steps: '',
-  prep_time: 30, difficulty: 'fácil', video_url: '',
+  prep_time: 30, servings: 4, difficulty: 'fácil', video_url: '',
 };
 
 interface Props {
@@ -265,6 +266,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
         ingredients: form.ingredients.split('\n').filter(Boolean),
         steps: form.steps.split('\n').filter(Boolean),
         prep_time: form.prep_time,
+        servings: form.servings,
         difficulty: form.difficulty,
         author_id: userId,
         ...(image_url && { image_url }),
@@ -312,6 +314,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
       ingredients: recipe.ingredients.join('\n'),
       steps: recipe.steps.join('\n'),
       prep_time: recipe.prep_time,
+      servings: recipe.servings ?? 4,
       difficulty: recipe.difficulty,
       video_url: recipe.video_url ?? '',
     });
@@ -377,6 +380,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
         </div>
         <span className="text-xs text-terra font-medium flex-shrink-0">Abrir →</span>
       </a>
+
       {showForm && (
         <div className="bg-white rounded-2xl border border-charcoal/5 p-6 mb-8 animate-slide-up">
           <div className="flex items-center justify-between mb-6">
@@ -399,13 +403,22 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                   className="input-field" placeholder="Ej: Tacos al pastor"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Tiempo (min)</label>
                   <input
                     type="number" required min={1}
                     value={form.prep_time}
                     onChange={(e) => setForm({ ...form, prep_time: Number(e.target.value) })}
+                    className="input-field"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Porciones</label>
+                  <input
+                    type="number" required min={1}
+                    value={form.servings}
+                    onChange={(e) => setForm({ ...form, servings: Number(e.target.value) })}
                     className="input-field"
                   />
                 </div>
@@ -528,7 +541,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
             <div className="flex-1 min-w-0">
               <h3 className="font-medium truncate">{recipe.title}</h3>
               <p className="text-xs text-charcoal/40 mt-0.5">
-                {recipe.difficulty} · {recipe.prep_time} min ·{' '}
+                {recipe.difficulty} · {recipe.prep_time} min · {recipe.servings ?? 4} porcion{(recipe.servings ?? 4) !== 1 ? 'es' : ''} ·{' '}
                 {new Date(recipe.created_at).toLocaleDateString('es-ES')}
               </p>
             </div>
@@ -566,23 +579,24 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
             <div
               key={msg.id}
               className={`bg-white rounded-xl border p-5 transition-all ${
-                msg.is_read ? 'border-charcoal/5' : 'border-terra/20 bg-terra/[0.02]'
+                msg.is_read ? 'border-charcoal/5 opacity-60' : 'border-terra/20 bg-terra/[0.02]'
               }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-medium">{msg.name}</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{msg.name}</span>
+                    <span className="text-xs text-charcoal/40">{msg.email}</span>
                     {!msg.is_read && (
                       <span className="w-2 h-2 rounded-full bg-terra flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-charcoal/40 mb-3">
-                    {msg.email} · {new Date(msg.created_at).toLocaleDateString('es-ES', {
-                      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                  <p className="text-sm text-charcoal/70">{msg.message}</p>
+                  <p className="text-xs text-charcoal/30 mt-2">
+                    {new Date(msg.created_at).toLocaleDateString('es-ES', {
+                      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
                     })}
                   </p>
-                  <p className="text-sm text-charcoal/70">{msg.message}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {!msg.is_read && (

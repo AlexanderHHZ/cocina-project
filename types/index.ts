@@ -1,7 +1,7 @@
 // ============================================
 // Tipos globales de la aplicación
 // ============================================
-
+ 
 export interface Recipe {
   id: string;
   title: string;
@@ -10,6 +10,7 @@ export interface Recipe {
   ingredients: string[];
   steps: string[];
   prep_time: number;       // minutos
+  servings: number;        // porciones
   difficulty: 'fácil' | 'media' | 'difícil';
   image_url: string | null;
   thumbnail_url: string | null;
@@ -24,7 +25,7 @@ export interface Recipe {
   is_liked?: boolean;
   is_favorited?: boolean;
 }
-
+ 
 export interface UserProfile {
   id: string;
   email: string;
@@ -33,7 +34,7 @@ export interface UserProfile {
   is_admin: boolean;
   created_at: string;
 }
-
+ 
 export interface Comment {
   id: string;
   recipe_id: string;
@@ -44,14 +45,14 @@ export interface Comment {
   // Join
   user?: UserProfile;
 }
-
+ 
 export interface Like {
   id: string;
   recipe_id: string;
   user_id: string;
   created_at: string;
 }
-
+ 
 export interface Favorite {
   id: string;
   recipe_id: string;
@@ -60,7 +61,7 @@ export interface Favorite {
   // Join
   recipe?: Recipe;
 }
-
+ 
 export interface Post {
   id: string;
   content: string;
@@ -74,7 +75,7 @@ export interface Post {
   comments_count?: number;
   author?: UserProfile;
 }
-
+ 
 export interface PostComment {
   id: string;
   post_id: string;

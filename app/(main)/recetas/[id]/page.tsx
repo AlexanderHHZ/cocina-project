@@ -2,7 +2,7 @@ import { createSupabaseServer } from '@/lib/supabase-server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Clock, ChefHat, ArrowLeft, Calendar } from 'lucide-react';
+import { Clock, ChefHat, ArrowLeft, Calendar, Users } from 'lucide-react';
 import LikeButton from '@/components/recetas/LikeButton';
 import FavoriteButton from '@/components/recetas/FavoriteButton';
 import CommentSection from '@/components/recetas/CommentSection';
@@ -58,7 +58,6 @@ export default async function RecipeDetailPage({ params }: Props) {
   const likesCount = recipe.likes_count?.[0]?.count ?? 0;
 
   // Key único que cambia cuando el servidor re-renderiza con datos nuevos.
-  // Esto fuerza a React a desmontar y remontar los botones con el estado correcto.
   const stateKey = `${recipe.id}-${isLiked}-${isFavorited}-${likesCount}`;
 
   const formatDate = (d: string) =>
@@ -86,6 +85,11 @@ export default async function RecipeDetailPage({ params }: Props) {
           <span className="flex items-center gap-1 text-xs text-charcoal/50">
             <Clock className="w-3.5 h-3.5" /> {recipe.prep_time} min
           </span>
+          {recipe.servings && (
+            <span className="flex items-center gap-1 text-xs text-charcoal/50">
+              <Users className="w-3.5 h-3.5" /> {recipe.servings} porcion{recipe.servings !== 1 ? 'es' : ''}
+            </span>
+          )}
           <span className="flex items-center gap-1 text-xs text-charcoal/50">
             <Calendar className="w-3.5 h-3.5" /> {formatDate(recipe.created_at)}
           </span>
@@ -129,7 +133,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Acciones - key fuerza re-mount cuando cambia el estado */}
+      {/* Acciones */}
       <div className="flex flex-wrap gap-3 mb-10">
         <LikeButton
           key={`like-${stateKey}`}
@@ -170,6 +174,11 @@ export default async function RecipeDetailPage({ params }: Props) {
             <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2">
               <ChefHat className="w-5 h-5 text-terra" /> Ingredientes
             </h2>
+            {recipe.servings && (
+              <p className="text-xs text-charcoal/40 mb-3 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5" /> Para {recipe.servings} porcion{recipe.servings !== 1 ? 'es' : ''}
+              </p>
+            )}
             <ul className="space-y-2.5">
               {recipe.ingredients.map((ing: string, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-sm">
