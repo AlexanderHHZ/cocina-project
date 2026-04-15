@@ -158,7 +158,7 @@ export default function ContactoPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              placeholder="tu@email.com"
+              placeholder="tu@correo.com"
             />
           </div>
           <div>
