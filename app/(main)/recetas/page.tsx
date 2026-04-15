@@ -1,6 +1,7 @@
 import { createSupabaseServer } from '@/lib/supabase-server';
 import RecipeCard from '@/components/recetas/RecipeCard';
-import { ChefHat, Search } from 'lucide-react';
+import LiveSearchBar from '@/components/search/LiveSearchBar';
+import { ChefHat } from 'lucide-react';
 import type { Recipe } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -14,28 +15,68 @@ export default async function RecetasPage({ searchParams }: Props) {
   const query = params.search ?? '';
   const supabase = await createSupabaseServer();
 
-  // Construir query
-  let dbQuery = supabase
-    .from('recipes')
-    .select(`
-      *,
-      likes_count:likes(count),
-      comments_count:comments(count)
-    `)
-    .order('created_at', { ascending: false });
+  let formattedRecipes: Recipe[];
 
-  // Filtrar por búsqueda (título o ingredientes)
   if (query) {
-    dbQuery = dbQuery.or(`title.ilike.%${query}%,ingredients.cs.{${query}}`);
+    // Buscar por título con ilike
+    const { data: byTitle } = await supabase
+      .from('recipes')
+      .select(`
+        *,
+        likes_count:likes(count),
+        comments_count:comments(count)
+      `)
+      .ilike('title', `%${query}%`)
+      .order('created_at', { ascending: false });
+
+    const titleIds = new Set((byTitle ?? []).map((r: any) => r.id));
+
+    // Buscar por ingredientes: traer todas y filtrar en JS
+    const { data: allRecipes } = await supabase
+      .from('recipes')
+      .select(`
+        *,
+        likes_count:likes(count),
+        comments_count:comments(count)
+      `)
+      .order('created_at', { ascending: false });
+
+    const qLower = query.toLowerCase();
+    const qNorm = qLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    const byIngredients = (allRecipes ?? []).filter((r: any) => {
+      if (titleIds.has(r.id)) return false;
+      if (!Array.isArray(r.ingredients)) return false;
+      return r.ingredients.some((ing: string) => {
+        const ingLower = ing.toLowerCase();
+        const ingNorm = ingLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return ingLower.includes(qLower) || ingNorm.includes(qNorm);
+      });
+    });
+
+    const combined = [...(byTitle ?? []), ...byIngredients];
+
+    formattedRecipes = combined.map((r: any) => ({
+      ...r,
+      likes_count: r.likes_count?.[0]?.count ?? 0,
+      comments_count: r.comments_count?.[0]?.count ?? 0,
+    }));
+  } else {
+    const { data: recipes } = await supabase
+      .from('recipes')
+      .select(`
+        *,
+        likes_count:likes(count),
+        comments_count:comments(count)
+      `)
+      .order('created_at', { ascending: false });
+
+    formattedRecipes = (recipes ?? []).map((r: any) => ({
+      ...r,
+      likes_count: r.likes_count?.[0]?.count ?? 0,
+      comments_count: r.comments_count?.[0]?.count ?? 0,
+    }));
   }
-
-  const { data: recipes } = await dbQuery;
-
-  const formattedRecipes: Recipe[] = (recipes ?? []).map((r: any) => ({
-    ...r,
-    likes_count: r.likes_count?.[0]?.count ?? 0,
-    comments_count: r.comments_count?.[0]?.count ?? 0,
-  }));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -51,19 +92,13 @@ export default async function RecetasPage({ searchParams }: Props) {
         </p>
       </div>
 
-      {/* Buscador inline */}
-      <form action="/recetas" method="GET" className="mb-8">
-        <div className="relative max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
-          <input
-            type="text"
-            name="search"
-            defaultValue={query}
-            placeholder="Buscar por título o ingrediente..."
-            className="input-field !pl-11"
-          />
-        </div>
-      </form>
+      {/* Buscador con live search */}
+      <div className="mb-8 max-w-lg">
+        <LiveSearchBar
+          placeholder="Buscar por título o ingrediente..."
+          variant="page"
+        />
+      </div>
 
       {/* Grid */}
       {formattedRecipes.length > 0 ? (
