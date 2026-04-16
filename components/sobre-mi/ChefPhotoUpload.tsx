@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Camera, Loader2, CheckCircle, X } from 'lucide-react';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
@@ -17,6 +18,7 @@ export default function ChefPhotoUpload({ currentPhotoUrl, adminId }: Props) {
   const [error, setError]         = useState('');
   const inputRef                  = useRef<HTMLInputElement>(null);
   const supabase                  = createSupabaseBrowser();
+  const router                    = useRouter();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,6 +65,7 @@ export default function ChefPhotoUpload({ currentPhotoUrl, adminId }: Props) {
       if (dbError) throw new Error(dbError.message);
 
       setPreview(publicUrl);
+      router.refresh(); // ← Invalida el caché de Server Components para que /sobre-mi recargue el perfil
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
