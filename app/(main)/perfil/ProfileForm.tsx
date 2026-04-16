@@ -98,7 +98,7 @@ export default function ProfileForm({ profile }: Props) {
       {/* Formulario de perfil */}
       <form onSubmit={handleSave} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium mb-2">Email</label>
+          <label className="block text-sm font-medium mb-2">Correo</label>
           <input
             type="email"
             value={profile.email}
