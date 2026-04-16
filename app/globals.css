@@ -1,63 +1,121 @@
+/* next/font/google inyecta Lora, Poppins e Inter automáticamente       */
+/* desde app/layout.tsx — no se necesita @import aquí.                  */
+ 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ============================================ */
-/* Estilos globales - Blog Gastronómico         */
-/* ============================================ */
-
+ 
+/* ============================================================ */
+/* Estilos globales — Blog Gastronómico · Warm Linen            */
+/* ============================================================ */
+ 
 @layer base {
   html {
     overflow-y: scroll;
   }
-
+ 
   body {
-    @apply bg-cream text-charcoal antialiased;
+    /* linen como fondo, walnut como texto, Inter para el cuerpo */
+    @apply bg-linen text-walnut antialiased;
+    font-family: theme('fontFamily.body');
   }
-
+ 
+  /* Headings usan Lora por defecto */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: theme('fontFamily.display');
+  }
+ 
   ::selection {
-    @apply bg-terra/20 text-charcoal;
+    @apply bg-paprika/20 text-walnut;
   }
 }
-
+ 
 @layer components {
+ 
+  /* ── Botones ─────────────────────────────────────────────── */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2
-           bg-terra text-white px-6 py-2.5 rounded-lg
+           bg-paprika text-white px-6 py-2.5 rounded-lg
            font-medium transition-all duration-200
-           hover:bg-terra/90 hover:shadow-lg hover:shadow-terra/20
+           hover:bg-paprika/90 hover:shadow-lg hover:shadow-paprika/20
            active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+    font-family: theme('fontFamily.ui');
   }
-
+ 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2
-           border-2 border-charcoal/20 text-charcoal px-6 py-2.5 rounded-lg
+           border-2 border-walnut/20 text-walnut px-6 py-2.5 rounded-lg
            font-medium transition-all duration-200
-           hover:border-terra hover:text-terra
+           hover:border-paprika hover:text-paprika
            active:scale-[0.98];
+    font-family: theme('fontFamily.ui');
   }
-
+ 
+  /* ── Cards ───────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-charcoal/5
+    @apply bg-white rounded-2xl shadow-sm border border-walnut/10
            overflow-hidden transition-all duration-300
-           hover:shadow-xl hover:shadow-charcoal/5 hover:-translate-y-1;
+           hover:shadow-xl hover:shadow-walnut/10 hover:-translate-y-1;
   }
-
+ 
+  /* ── Inputs ──────────────────────────────────────────────── */
   .input-field {
-    @apply w-full px-4 py-3 rounded-lg border border-charcoal/15
-           bg-white text-charcoal placeholder:text-charcoal/40
-           focus:outline-none focus:ring-2 focus:ring-terra/30 focus:border-terra
+    @apply w-full px-4 py-3 rounded-lg border border-walnut/20
+           bg-white text-walnut placeholder:text-walnut/40
+           focus:outline-none focus:ring-2 focus:ring-paprika/30 focus:border-paprika
            transition-all duration-200;
+    font-family: theme('fontFamily.body');
   }
-
+ 
+  /* ── Badges de dificultad ────────────────────────────────── */
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-           bg-sage/15 text-sage;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    font-family: theme('fontFamily.ui');
+  }
+ 
+  .badge-easy {
+    @apply badge bg-herb/10 text-herb;
+  }
+ 
+  .badge-medium {
+    @apply badge bg-honey/10 text-honey;
+  }
+ 
+  .badge-hard {
+    @apply badge bg-wine/10 text-wine;
+  }
+ 
+  /* ── Tipografía de display (Lora) ────────────────────────── */
+  .font-display {
+    font-family: theme('fontFamily.display');
+  }
+ 
+  /* ── Tipografía de UI (Poppins) ──────────────────────────── */
+  .font-ui {
+    font-family: theme('fontFamily.ui');
+  }
+ 
+  /* ── Stats / métricas (Poppins bold) ─────────────────────── */
+  .stat-number {
+    @apply font-bold text-2xl md:text-3xl;
+    font-family: theme('fontFamily.ui');
+  }
+ 
+  /* ── Prose para instrucciones (Inter) ────────────────────── */
+  .recipe-prose {
+    @apply text-walnut/70 leading-relaxed;
+    font-family: theme('fontFamily.body');
+  }
+ 
+  /* ── Navbar link ─────────────────────────────────────────── */
+  .nav-link {
+    @apply text-sm text-walnut/60 hover:text-paprika transition-colors duration-150;
+    font-family: theme('fontFamily.ui');
   }
 }
-
-/* Scrollbar sutil */
+ 
+/* ── Scrollbar sutil en tono linen ──────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #C4653A33; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #C4653A66; }
+::-webkit-scrollbar-thumb { background: #B5451B33; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #B5451B66; }

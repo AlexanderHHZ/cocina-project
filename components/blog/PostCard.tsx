@@ -13,9 +13,7 @@ interface Props {
 
 // Renderiza texto con #hashtags resaltados en azul
 function RenderContent({ text }: { text: string }) {
-  // Separar por hashtags: busca #PalabrasConOSinEspacios
   const parts = text.split(/(#[^\s#]+)/g);
-
   return (
     <span>
       {parts.map((part, i) =>
@@ -52,28 +50,27 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
   };
 
   return (
-    <article className="bg-white rounded-2xl border border-charcoal/5 overflow-hidden">
+    <article className="bg-white rounded-2xl border border-walnut/10 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 pb-3">
-        <div className="w-10 h-10 rounded-full bg-terra/15 flex items-center justify-center">
-          <span className="text-sm font-bold text-terra">{authorInitial}</span>
+        <div className="w-10 h-10 rounded-full bg-paprika/10 flex items-center justify-center">
+          <span className="text-sm font-bold text-paprika">{authorInitial}</span>
         </div>
         <div>
           <p className="text-sm font-medium">{authorName}</p>
-          <p className="text-xs text-charcoal/40">{timeAgo(post.created_at)}</p>
+          <p className="text-xs text-walnut/40 font-ui">{timeAgo(post.created_at)}</p>
         </div>
       </div>
 
       {/* Contenido con hashtags resaltados */}
       <div className="px-4 pb-3">
-        <p className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-line">
+        <p className="text-sm text-walnut/80 leading-relaxed whitespace-pre-line">
           <RenderContent text={post.content} />
         </p>
       </div>
 
       {/* Enlace a video de YouTube */}
       {post.video_url && (() => {
-        // Convertir cualquier formato de YouTube a URL normal para el link
         const embedMatch = post.video_url!.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
         const watchMatch = post.video_url!.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
         const shortMatch = post.video_url!.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
@@ -86,8 +83,8 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
               href={youtubeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-charcoal/[0.03] border border-charcoal/5
-                         hover:bg-charcoal/[0.06] hover:border-charcoal/10 transition-all group"
+              className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-walnut/[0.03] border border-walnut/10
+                         hover:bg-walnut/[0.06] hover:border-walnut/20 transition-all group"
             >
               <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="currentColor">
@@ -95,10 +92,10 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-charcoal group-hover:text-red-600 transition-colors">Ver video en YouTube</p>
-                <p className="text-xs text-charcoal/40 truncate">{youtubeUrl}</p>
+                <p className="text-sm font-medium text-walnut group-hover:text-red-600 transition-colors">Ver video en YouTube</p>
+                <p className="text-xs text-walnut/40 truncate">{youtubeUrl}</p>
               </div>
-              <span className="text-xs text-charcoal/30 group-hover:text-red-500 transition-colors flex-shrink-0">↗</span>
+              <span className="text-xs text-walnut/30 group-hover:text-red-500 transition-colors flex-shrink-0">↗</span>
             </a>
           </div>
         );
@@ -112,7 +109,7 @@ export default function PostCard({ post, userId, isLiked, likesCount, comments }
       )}
 
       {/* Acciones */}
-      <div className="border-t border-charcoal/5">
+      <div className="border-t border-walnut/10">
         <div className="px-4 py-3 flex items-start gap-6">
           <div className="pt-0.5">
             <PostLikeButton

@@ -5,9 +5,9 @@ export default function SobreMiPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="font-display text-3xl md:text-4xl font-bold mb-6">Sobre mí</h1>
 
-      <div className="prose-like space-y-6 text-charcoal/70 leading-relaxed">
+      <div className="prose-like space-y-6 text-walnut/70 leading-relaxed">
         <p className="text-lg">
-          ¡Hola! Soy el chef detrás de <span className="text-terra font-medium">Ingrediente 791</span>.
+          ¡Hola! Soy el chef detrás de <span className="text-paprika font-medium">Ingrediente 791</span>.
           Mi pasión por la gastronomía nació en la cocina de mi abuela, donde los aromas
           de guisos lentos y pan recién horneado llenaban la casa cada fin de semana.
         </p>
@@ -18,10 +18,10 @@ export default function SobreMiPage() {
             { icon: Heart, title: 'Amor', desc: 'Cada receta lleva un pedacito de corazón' },
             { icon: Utensils, title: 'Técnica', desc: 'Fundamentos sólidos, creatividad infinita' },
           ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-white rounded-2xl border border-charcoal/5 p-6 text-center">
-              <Icon className="w-8 h-8 text-terra mx-auto mb-3" />
+            <div key={title} className="bg-white rounded-2xl border border-walnut/10 p-6 text-center">
+              <Icon className="w-8 h-8 text-paprika mx-auto mb-3" />
               <h3 className="font-display font-bold mb-1">{title}</h3>
-              <p className="text-sm text-charcoal/50">{desc}</p>
+              <p className="text-sm text-walnut/50">{desc}</p>
             </div>
           ))}
         </div>

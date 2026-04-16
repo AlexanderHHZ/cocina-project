@@ -1,7 +1,29 @@
 import type { Metadata } from 'next';
+import { Lora, Poppins, Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import { Suspense } from 'react';
+
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-lora',
+  display: 'swap',
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-poppins',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Ingrediente 791 — Recetas con Alma',
@@ -15,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen font-body">
+      <body className={`${lora.variable} ${poppins.variable} ${inter.variable} min-h-screen font-body`}>
         <Suspense fallback={null}>
           <Navbar />
         </Suspense>

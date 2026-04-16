@@ -9,15 +9,15 @@ interface Props {
 
 export default function RecipeCard({ recipe }: Props) {
   const difficultyColor = {
-    'fácil': 'bg-sage/15 text-sage',
-    'media': 'bg-gold/15 text-gold',
-    'difícil': 'bg-wine/15 text-wine',
+    'fácil':   'bg-herb/10 text-herb',
+    'media':   'bg-honey/10 text-honey',
+    'difícil': 'bg-wine/10 text-wine',
   };
 
   return (
     <Link href={`/recetas/${recipe.slug}`} className="card group block">
       {/* Imagen */}
-      <div className="relative aspect-video overflow-hidden bg-charcoal/5">
+      <div className="relative aspect-video overflow-hidden bg-walnut/5">
         {(recipe.thumbnail_url || recipe.image_url) ? (
           <Image
             src={recipe.thumbnail_url || recipe.image_url!}
@@ -31,26 +31,26 @@ export default function RecipeCard({ recipe }: Props) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ChefHat className="w-12 h-12 text-charcoal/15" />
+            <ChefHat className="w-12 h-12 text-walnut/15" />
           </div>
         )}
         {/* Badge dificultad */}
-        <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${difficultyColor[recipe.difficulty]}`}>
+        <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium font-ui backdrop-blur-sm ${difficultyColor[recipe.difficulty as keyof typeof difficultyColor] ?? 'bg-walnut/10 text-walnut'}`}>
           {recipe.difficulty}
         </span>
       </div>
 
       {/* Contenido */}
       <div className="p-5">
-        <h3 className="font-display text-lg font-bold leading-snug mb-2 group-hover:text-terra transition-colors">
+        <h3 className="font-display text-lg font-bold leading-snug mb-2 group-hover:text-paprika transition-colors">
           {recipe.title}
         </h3>
-        <p className="text-sm text-charcoal/60 line-clamp-2 mb-4">
+        <p className="text-sm text-walnut/60 line-clamp-2 mb-4">
           {recipe.description}
         </p>
 
         {/* Meta */}
-        <div className="flex items-center justify-between text-xs text-charcoal/50">
+        <div className="flex items-center justify-between text-xs text-walnut/50 font-ui">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" /> {recipe.prep_time} min
@@ -62,7 +62,7 @@ export default function RecipeCard({ recipe }: Props) {
               <MessageCircle className="w-3.5 h-3.5" /> {recipe.comments_count ?? 0}
             </span>
           </div>
-          <span className="text-terra font-medium">Ver →</span>
+          <span className="text-paprika font-medium">Ver →</span>
         </div>
       </div>
     </Link>

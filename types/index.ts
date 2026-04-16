@@ -9,8 +9,8 @@ export interface Recipe {
   description: string;
   ingredients: string[];
   steps: string[];
-  prep_time: number;       // minutos
-  servings: number;        // porciones
+  prep_time: number;
+  servings: number;
   difficulty: 'fácil' | 'media' | 'difícil';
   image_url: string | null;
   thumbnail_url: string | null;

@@ -33,7 +33,7 @@ export default async function FavoritosPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="font-display text-3xl font-bold mb-2">Mis favoritos</h1>
-      <p className="text-charcoal/50 mb-10">Recetas que has guardado para después.</p>
+      <p className="text-walnut/50 mb-10">Recetas que has guardado para después.</p>
 
       {recipes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -43,11 +43,11 @@ export default async function FavoritosPage() {
         </div>
       ) : (
         <div className="text-center py-20">
-          <Bookmark className="w-16 h-16 text-charcoal/10 mx-auto mb-4" />
-          <h3 className="font-display text-xl font-bold text-charcoal/30 mb-2">
+          <Bookmark className="w-16 h-16 text-walnut/10 mx-auto mb-4" />
+          <h3 className="font-display text-xl font-bold text-walnut/30 mb-2">
             Sin favoritos aún
           </h3>
-          <p className="text-charcoal/40 text-sm">
+          <p className="text-walnut/40 text-sm">
             Guarda recetas con el botón de favorito para verlas aquí.
           </p>
         </div>

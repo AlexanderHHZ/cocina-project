@@ -6,72 +6,35 @@ import type { Recipe } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-interface Props {
-  searchParams: Promise<{ search?: string }>;
-}
-
-export default async function RecetasPage({ searchParams }: Props) {
-  const params = await searchParams;
-  const query = params.search ?? '';
+export default async function RecetasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q: query } = await searchParams;
   const supabase = await createSupabaseServer();
 
-  let formattedRecipes: Recipe[];
+  let formattedRecipes: Recipe[] = [];
 
   if (query) {
-    // Buscar por título con ilike
-    const { data: byTitle } = await supabase
+    const { data } = await supabase
       .from('recipes')
-      .select(`
-        *,
-        likes_count:likes(count),
-        comments_count:comments(count)
-      `)
-      .ilike('title', `%${query}%`)
+      .select(`*, likes_count:likes(count), comments_count:comments(count)`)
+      .or(`title.ilike.%${query}%,ingredients.cs.{${query}}`)
       .order('created_at', { ascending: false });
 
-    const titleIds = new Set((byTitle ?? []).map((r: any) => r.id));
-
-    // Buscar por ingredientes: traer todas y filtrar en JS
-    const { data: allRecipes } = await supabase
-      .from('recipes')
-      .select(`
-        *,
-        likes_count:likes(count),
-        comments_count:comments(count)
-      `)
-      .order('created_at', { ascending: false });
-
-    const qLower = query.toLowerCase();
-    const qNorm = qLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-    const byIngredients = (allRecipes ?? []).filter((r: any) => {
-      if (titleIds.has(r.id)) return false;
-      if (!Array.isArray(r.ingredients)) return false;
-      return r.ingredients.some((ing: string) => {
-        const ingLower = ing.toLowerCase();
-        const ingNorm = ingLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        return ingLower.includes(qLower) || ingNorm.includes(qNorm);
-      });
-    });
-
-    const combined = [...(byTitle ?? []), ...byIngredients];
-
-    formattedRecipes = combined.map((r: any) => ({
+    formattedRecipes = (data ?? []).map((r: any) => ({
       ...r,
       likes_count: r.likes_count?.[0]?.count ?? 0,
       comments_count: r.comments_count?.[0]?.count ?? 0,
     }));
   } else {
-    const { data: recipes } = await supabase
+    const { data } = await supabase
       .from('recipes')
-      .select(`
-        *,
-        likes_count:likes(count),
-        comments_count:comments(count)
-      `)
+      .select(`*, likes_count:likes(count), comments_count:comments(count)`)
       .order('created_at', { ascending: false });
 
-    formattedRecipes = (recipes ?? []).map((r: any) => ({
+    formattedRecipes = (data ?? []).map((r: any) => ({
       ...r,
       likes_count: r.likes_count?.[0]?.count ?? 0,
       comments_count: r.comments_count?.[0]?.count ?? 0,
@@ -85,14 +48,14 @@ export default async function RecetasPage({ searchParams }: Props) {
         <h1 className="font-display text-3xl md:text-4xl font-bold">
           {query ? `Resultados para "${query}"` : 'Todas las recetas'}
         </h1>
-        <p className="text-charcoal/50 mt-2">
+        <p className="text-walnut/50 mt-2">
           {query
             ? `${formattedRecipes.length} receta${formattedRecipes.length !== 1 ? 's' : ''} encontrada${formattedRecipes.length !== 1 ? 's' : ''}`
             : 'Explora nuestra colección completa'}
         </p>
       </div>
 
-      {/* Buscador con live search */}
+      {/* Buscador */}
       <div className="mb-8 max-w-lg">
         <LiveSearchBar
           placeholder="Buscar por título o ingrediente..."
@@ -109,11 +72,11 @@ export default async function RecetasPage({ searchParams }: Props) {
         </div>
       ) : (
         <div className="text-center py-20">
-          <ChefHat className="w-16 h-16 text-charcoal/10 mx-auto mb-4" />
-          <h3 className="font-display text-xl font-bold text-charcoal/30 mb-2">
+          <ChefHat className="w-16 h-16 text-walnut/10 mx-auto mb-4" />
+          <h3 className="font-display text-xl font-bold text-walnut/30 mb-2">
             {query ? 'Sin resultados' : 'Aún no hay recetas'}
           </h3>
-          <p className="text-charcoal/40 text-sm">
+          <p className="text-walnut/40 text-sm">
             {query
               ? 'Intenta con otros términos de búsqueda.'
               : 'Las recetas aparecerán aquí cuando las publiques.'}

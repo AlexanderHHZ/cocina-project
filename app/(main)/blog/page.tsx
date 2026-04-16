@@ -8,7 +8,6 @@ export const dynamic = 'force-dynamic';
 export default async function BlogPage() {
   const supabase = await createSupabaseServer();
 
-  // Obtener posts con conteos
   const { data: posts } = await supabase
     .from('posts')
     .select(`
@@ -19,11 +18,9 @@ export default async function BlogPage() {
     `)
     .order('created_at', { ascending: false });
 
-  // Obtener usuario actual
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id ?? null;
 
-  // Para cada post, obtener si el usuario dio like y los comentarios
   const formattedPosts = await Promise.all(
     (posts ?? []).map(async (p: any) => {
       const post: Post = {
@@ -56,7 +53,7 @@ export default async function BlogPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">Blog</h1>
-      <p className="text-charcoal/50 mb-10">Publicaciones, novedades y detrás de cámaras.</p>
+      <p className="text-walnut/50 mb-10">Publicaciones, novedades y detrás de cámaras.</p>
 
       {formattedPosts.length > 0 ? (
         <div className="space-y-6">
@@ -73,11 +70,11 @@ export default async function BlogPage() {
         </div>
       ) : (
         <div className="text-center py-20">
-          <Newspaper className="w-16 h-16 text-charcoal/10 mx-auto mb-4" />
-          <h3 className="font-display text-xl font-bold text-charcoal/30 mb-2">
+          <Newspaper className="w-16 h-16 text-walnut/10 mx-auto mb-4" />
+          <h3 className="font-display text-xl font-bold text-walnut/30 mb-2">
             Aún no hay publicaciones
           </h3>
-          <p className="text-charcoal/40 text-sm">
+          <p className="text-walnut/40 text-sm">
             Las publicaciones aparecerán aquí cuando las crees desde el panel admin.
           </p>
         </div>
