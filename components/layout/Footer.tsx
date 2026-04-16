@@ -10,13 +10,7 @@ export default function Footer() {
 
           {/* Brand */}
           <div className="md:col-span-5">
-            <Link href="/" className="inline-block mb-4">
-              <img
-                src="/images/logo.webp"
-                alt="Ingrediente 791"
-                className="h-20 w-auto"
-              />
-            </Link>
+            <h3 className="font-display text-lg font-bold text-white mb-3">Ingrediente 791</h3>
             <p className="text-sm leading-relaxed max-w-sm">
               Recetas caseras con amor, compartidas para inspirar tu mesa de cada día.
               Desde la cocina de siempre hasta tu hogar.
