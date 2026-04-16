@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import {
-  Search, Menu, X, User, Heart, LogOut, LogIn, Shield,
+  Search, Menu, X, User, Heart, LogOut, LogIn, Shield, ChefHat,
 } from 'lucide-react';
 import type { User as SupaUser } from '@supabase/supabase-js';
 import SearchDropdown, { getCached, setCache } from '@/components/search/SearchDropdown';
@@ -230,36 +230,42 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-cream/80 backdrop-blur-xl border-b border-charcoal/5">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/85 backdrop-blur-xl border-b border-walnut/[0.06] shadow-sm shadow-walnut/[0.03]">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-24 gap-6">
+        <div className="flex items-center justify-between h-24 gap-5">
 
-          <Link href="/" className="flex-shrink-0">
-            <img src="/images/logo.webp" alt="Ingrediente 791" className="h-20 w-auto" />
+          {/* ── Logo ── */}
+          <Link href="/" className="flex-shrink-0 group">
+            <img
+              src="/images/logo.webp"
+              alt="Ingrediente 791"
+              className="h-[68px] w-auto transition-transform duration-200 group-hover:scale-105"
+            />
           </Link>
 
-          <div className="hidden lg:flex items-center gap-8 flex-shrink-0">
+          {/* ── Links de navegación ── */}
+          <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}
-                className="text-base font-medium text-charcoal/70 hover:text-terra transition-colors relative
-                           after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-terra
-                           after:transition-all hover:after:w-full">
+              <Link
+                key={link.href}
+                href={link.href}
+                className="px-5 py-2.5 rounded-lg text-base font-medium font-ui text-walnut/65
+                           hover:text-paprika hover:bg-paprika/[0.05] transition-all duration-150"
+              >
                 {link.label}
               </Link>
             ))}
           </div>
 
           {/* ── Buscador desktop ── */}
-          <div className="hidden md:block flex-1 max-w-lg mx-6 relative">
+          <div className="hidden md:block flex-1 max-w-lg mx-5 relative">
             <form onSubmit={handleSearch} className="flex">
               <div className={`relative flex-1 transition-all duration-200 ${
-                searchFocused ? 'ring-2 ring-terra/30 rounded-l-[20px]' : ''
+                searchFocused ? 'ring-2 ring-paprika/20 rounded-l-xl' : ''
               }`}>
-                <div className={`absolute left-3.5 top-1/2 -translate-y-1/2 transition-all duration-200 ${
-                  searchFocused ? 'opacity-100 w-5' : 'opacity-0 w-0'
-                }`}>
-                  <Search className="w-6 h-6 text-charcoal/40" />
-                </div>
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] transition-colors duration-200 ${
+                  searchFocused ? 'text-paprika' : 'text-walnut/30'
+                }`} />
                 <input
                   ref={desktopSearchRef}
                   type="text"
@@ -268,28 +274,27 @@ export default function Navbar() {
                   onFocus={handleFocus}
                   onBlur={handleBlur}
                   onKeyDown={handleKeyDown}
-                  placeholder="Buscar por título o ingrediente..."
-                  className={`w-full h-12 border border-charcoal/15 bg-white rounded-l-[18px]
-                             text-sm placeholder:text-charcoal/40
-                             focus:outline-none transition-all duration-200
-                             ${searchFocused ? 'pl-12 pr-10' : 'pl-5 pr-10'}
-                             border-r-0`}
+                  placeholder="Buscar recetas..."
+                  className="w-full h-12 pl-11 pr-10 border border-walnut/12 bg-linen/50 rounded-l-xl
+                             text-sm font-ui placeholder:text-walnut/35
+                             focus:outline-none focus:bg-white transition-all duration-200
+                             border-r-0"
                   autoComplete="off"
                 />
                 {searchQuery && (
                   <button type="button" onMouseDown={(e) => e.preventDefault()}
                     onClick={() => { clearSearch(); desktopSearchRef.current?.focus(); }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full
-                               text-charcoal/40 hover:text-charcoal hover:bg-charcoal/5 transition-all animate-fade-in">
-                    <X className="w-5 h-5" />
+                               text-walnut/40 hover:text-walnut hover:bg-walnut/5 transition-all animate-fade-in">
+                    <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
               <button type="submit"
-                className="h-12 px-5 bg-charcoal/[0.06] border border-charcoal/15 border-l-0 rounded-r-[18px]
-                           hover:bg-charcoal/[0.1] transition-colors flex items-center justify-center"
+                className="h-12 px-5 bg-paprika/[0.08] border border-walnut/12 border-l-0 rounded-r-xl
+                           hover:bg-paprika/15 transition-colors flex items-center justify-center"
                 aria-label="Buscar">
-                <Search className="w-6 h-6 text-charcoal/60" />
+                <Search className="w-[18px] h-[18px] text-paprika/60" />
               </button>
             </form>
             <SearchDropdown ref={dropdownRef} show={showDropdown} suggestions={suggestions}
@@ -298,97 +303,103 @@ export default function Navbar() {
               onHoverIndex={handleHoverIndex} />
           </div>
 
-          {/* Acciones */}
-          <div className="flex items-center gap-4 flex-shrink-0">
+          {/* ── Acciones ── */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* Buscar móvil */}
             <button onClick={() => {
               const opening = !searchOpen;
               setSearchOpen(opening);
               if (opening) setTimeout(() => { searchRef.current?.focus(); }, 100);
               else setShowDropdown(false);
-            }} className="md:hidden p-2.5 rounded-lg hover:bg-charcoal/5 transition-colors" aria-label="Buscar">
-              <Search className="w-6 h-6 text-charcoal/60" />
+            }} className="md:hidden p-2.5 rounded-lg hover:bg-walnut/5 transition-colors" aria-label="Buscar">
+              <Search className="w-6 h-6 text-walnut/50" />
             </button>
 
             {authLoading ? (
-              <div className="w-10 h-10 rounded-full bg-charcoal/5 animate-pulse" />
+              <div className="w-11 h-11 rounded-full bg-walnut/5 animate-pulse" />
             ) : user ? (
               <div className="relative" ref={userMenuRef}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-charcoal/5 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-terra/15 flex items-center justify-center">
-                    <span className="text-base font-bold text-terra">{user.email?.charAt(0).toUpperCase()}</span>
+                  className="flex items-center gap-2 p-1 rounded-xl hover:bg-walnut/5 transition-colors">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-paprika/20 to-paprika/10 flex items-center justify-center ring-2 ring-paprika/15">
+                    <span className="text-base font-bold text-paprika">{user.email?.charAt(0).toUpperCase()}</span>
                   </div>
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-charcoal/5 py-2 animate-scale-in origin-top-right">
-                    <div className="px-4 py-2 border-b border-charcoal/5">
-                      <p className="text-xs text-charcoal/50">Conectado como</p>
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl shadow-walnut/10 border border-walnut/8 py-2 animate-scale-in origin-top-right">
+                    <div className="px-4 py-3 border-b border-walnut/8">
+                      <p className="text-[10px] uppercase tracking-wider text-walnut/40 font-ui mb-0.5">Conectado como</p>
                       <p className="text-sm font-medium truncate">{user.email}</p>
                     </div>
-                    <Link href="/perfil" onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-charcoal/5 transition-colors">
-                      <User className="w-4 h-4 text-charcoal/50" /> Perfil
-                    </Link>
-                    <Link href="/favoritos" onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-charcoal/5 transition-colors">
-                      <Heart className="w-4 h-4 text-charcoal/50" /> Favoritos
-                    </Link>
-                    {isAdmin && (
-                      <Link href="/admin" onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-charcoal/5 transition-colors text-terra">
-                        <Shield className="w-4 h-4" /> Panel Admin
+                    <div className="py-1">
+                      <Link href="/perfil" onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-ui hover:bg-walnut/[0.04] transition-colors">
+                        <User className="w-4 h-4 text-walnut/40" /> Perfil
                       </Link>
-                    )}
-                    <button onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-charcoal/5 transition-colors w-full text-left text-wine">
-                      <LogOut className="w-4 h-4" /> Cerrar sesión
-                    </button>
+                      <Link href="/favoritos" onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-ui hover:bg-walnut/[0.04] transition-colors">
+                        <Heart className="w-4 h-4 text-walnut/40" /> Favoritos
+                      </Link>
+                      {isAdmin && (
+                        <Link href="/admin" onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-ui hover:bg-paprika/[0.04] transition-colors text-paprika">
+                          <Shield className="w-4 h-4" /> Panel Admin
+                        </Link>
+                      )}
+                    </div>
+                    <div className="border-t border-walnut/8 pt-1">
+                      <button onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-ui hover:bg-wine/[0.04] transition-colors w-full text-left text-wine">
+                        <LogOut className="w-4 h-4" /> Cerrar sesión
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <Link href="/login"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
-                           text-charcoal/70 hover:text-terra hover:bg-charcoal/5 transition-colors">
-                <LogIn className="w-5 h-5" />
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium font-ui
+                           text-white bg-paprika hover:bg-paprika/90 transition-colors shadow-sm">
+                <LogIn className="w-[18px] h-[18px]" />
                 <span className="hidden sm:inline">Iniciar sesión</span>
               </Link>
             )}
 
+            {/* Hamburguesa */}
             <button onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden p-2.5 rounded-lg hover:bg-charcoal/5 transition-colors" aria-label="Menú">
-              {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              className="lg:hidden p-2.5 rounded-lg hover:bg-walnut/5 transition-colors" aria-label="Menú">
+              {menuOpen ? <X className="w-6 h-6 text-walnut/60" /> : <Menu className="w-6 h-6 text-walnut/60" />}
             </button>
           </div>
         </div>
 
-        {/* Búsqueda móvil */}
+        {/* ── Búsqueda móvil ── */}
         {searchOpen && (
           <div className="md:hidden pb-3 animate-slide-up relative">
             <form onSubmit={handleSearch} className="flex">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-walnut/35" />
                 <input ref={searchRef} type="text" value={searchQuery}
                   onChange={(e) => handleInputChange(e.target.value)}
                   onFocus={handleFocus} onBlur={handleBlur} onKeyDown={handleKeyDown}
                   placeholder="Buscar recetas..." autoComplete="off"
-                  className="w-full h-10 pl-10 pr-9 border border-charcoal/15 bg-white rounded-l-[18px]
-                             text-sm placeholder:text-charcoal/40 focus:outline-none focus:ring-2
-                             focus:ring-terra/30 border-r-0 transition-all" />
+                  className="w-full h-10 pl-10 pr-9 border border-walnut/12 bg-linen/50 rounded-l-xl
+                             text-sm font-ui placeholder:text-walnut/35 focus:outline-none focus:ring-2
+                             focus:ring-paprika/20 focus:bg-white border-r-0 transition-all" />
                 {searchQuery && (
                   <button type="button" onMouseDown={(e) => e.preventDefault()}
                     onClick={() => { clearSearch(); searchRef.current?.focus(); }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full
-                               text-charcoal/40 hover:text-charcoal transition-all">
+                               text-walnut/40 hover:text-walnut transition-all">
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
               <button type="submit"
-                className="h-10 px-4 bg-charcoal/[0.06] border border-charcoal/15 border-l-0 rounded-r-[18px]
-                           hover:bg-charcoal/[0.1] transition-colors flex items-center justify-center"
+                className="h-10 px-4 bg-paprika/[0.08] border border-walnut/12 border-l-0 rounded-r-xl
+                           hover:bg-paprika/15 transition-colors flex items-center justify-center"
                 aria-label="Buscar">
-                <Search className="w-4 h-4 text-charcoal/60" />
+                <Search className="w-4 h-4 text-paprika/60" />
               </button>
             </form>
             <SearchDropdown show={showDropdown} suggestions={suggestions} suggestionsType={suggestionsType}
@@ -397,12 +408,14 @@ export default function Navbar() {
           </div>
         )}
 
+        {/* ── Menú móvil ── */}
         {menuOpen && (
-          <div className="lg:hidden pb-4 border-t border-charcoal/5 pt-3 animate-slide-up">
-            <div className="flex flex-col gap-1">
+          <div className="lg:hidden pb-4 border-t border-walnut/8 pt-3 animate-slide-up">
+            <div className="flex flex-col gap-0.5">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)}
-                  className="px-4 py-3 rounded-lg text-sm font-medium hover:bg-charcoal/5 transition-colors">
+                  className="px-4 py-3 rounded-xl text-sm font-medium font-ui text-walnut/70
+                             hover:bg-paprika/[0.05] hover:text-paprika transition-all">
                   {link.label}
                 </Link>
               ))}

@@ -1,7 +1,7 @@
 import { createSupabaseServer } from '@/lib/supabase-server';
 import RecipeCard from '@/components/recetas/RecipeCard';
 import Link from 'next/link';
-import { ChefHat, ArrowRight, Flame } from 'lucide-react';
+import { ChefHat, ArrowRight, Flame, Clock, Heart } from 'lucide-react';
 import type { Recipe } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -36,65 +36,75 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ======== HERO CON BANNER ======== */}
-      <section className="relative overflow-hidden">
-        {/* Fondo */}
-        <div className="absolute inset-0 bg-gradient-to-br from-linen via-paprika/[0.03] to-parchment/50" />
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0z\' fill=\'none\'/%3E%3Cpath d=\'M20 0v40M0 20h40\' stroke=\'%235C3D2E\' stroke-width=\'0.5\'/%3E%3C/svg%3E")', backgroundSize: '40px 40px' }} />
+      {/* ======== HERO + STATS = pantalla completa ======== */}
+      <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 96px)' }}>
+        {/* Hero - se estira para llenar */}
+        <section className="relative overflow-hidden flex-1 flex items-center">
+          {/* Fondo */}
+          <div className="absolute inset-0 bg-gradient-to-br from-linen via-paprika/[0.03] to-parchment/50" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0z\' fill=\'none\'/%3E%3Cpath d=\'M20 0v40M0 20h40\' stroke=\'%235C3D2E\' stroke-width=\'0.5\'/%3E%3C/svg%3E")', backgroundSize: '40px 40px' }} />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-paprika/10 text-paprika text-sm font-medium font-ui mb-8 animate-fade-in">
-              <Flame className="w-4 h-4" /> Recetas nuevas cada semana
-            </div>
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6 animate-slide-up">
-              Cocina con{' '}
-              <span className="text-paprika italic">alma</span>,{' '}
-              <br className="hidden sm:block" />
-              comparte con{' '}
-              <span className="text-herb italic">amor</span>
-            </h1>
-            <p className="text-lg text-walnut/55 leading-relaxed mb-8 max-w-lg mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              Descubre recetas caseras, paso a paso, con ingredientes reales y mucho sabor.
-              Desde platos rápidos hasta festines de fin de semana.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <Link href="/recetas" className="btn-primary">
-                Explorar recetas <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link href="/sobre-mi" className="btn-secondary">
-                Conocer más
-              </Link>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full">
+            <div className="max-w-2xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-paprika/10 text-paprika text-sm font-medium font-ui mb-8 animate-fade-in">
+                <Flame className="w-4 h-4" /> Recetas nuevas cada semana
+              </div>
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6 animate-slide-up">
+                Cocina con{' '}
+                <span className="text-paprika italic">alma</span>,{' '}
+                <br className="hidden sm:block" />
+                comparte con{' '}
+                <span className="text-herb italic">amor</span>
+              </h1>
+              <p className="text-lg text-walnut/55 leading-relaxed mb-8 max-w-lg mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                Descubre recetas caseras, paso a paso, con ingredientes reales y mucho sabor.
+                Desde platos rápidos hasta festines de fin de semana.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <Link href="/recetas" className="btn-primary">
+                  Explorar recetas <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link href="/sobre-mi" className="btn-secondary">
+                  Conocer más
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Decoración */}
-        <div className="absolute -right-32 top-1/3 w-96 h-96 bg-paprika/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 bottom-0 w-72 h-72 bg-herb/5 rounded-full blur-3xl pointer-events-none" />
-      </section>
+          {/* Decoración */}
+          <div className="absolute -right-32 top-1/3 w-96 h-96 bg-paprika/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 bottom-0 w-72 h-72 bg-herb/5 rounded-full blur-3xl pointer-events-none" />
+        </section>
 
-      {/* ======== STATS ======== */}
-      <section className="border-b border-walnut/10 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex items-center justify-center gap-10 md:gap-16">
-            <div className="text-center">
-              <p className="font-ui text-2xl md:text-3xl font-bold text-paprika">{recipeCountDisplay}</p>
-              <p className="text-xs text-walnut/45 font-ui mt-1">Recetas</p>
-            </div>
-            <div className="w-px h-12 bg-walnut/10" />
-            <div className="text-center">
-              <p className="font-ui text-2xl md:text-3xl font-bold text-herb">15</p>
-              <p className="text-xs text-walnut/45 font-ui mt-1">Min promedio</p>
-            </div>
-            <div className="w-px h-12 bg-walnut/10" />
-            <div className="text-center">
-              <p className="font-ui text-2xl md:text-3xl font-bold text-honey">100%</p>
-              <p className="text-xs text-walnut/45 font-ui mt-1">Casero</p>
+        {/* Stats - pegados al fondo del viewport */}
+        <section className="border-y border-walnut/8 bg-white flex-shrink-0">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-3 divide-x divide-walnut/8">
+              <div className="flex items-center justify-center gap-3 py-5">
+                <ChefHat className="w-6 h-6 text-paprika flex-shrink-0" />
+                <div>
+                  <p className="font-display text-2xl md:text-3xl font-bold text-walnut leading-none">{recipeCountDisplay}</p>
+                  <p className="text-xs text-walnut/45 font-ui mt-0.5">Recetas</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-3 py-5">
+                <Clock className="w-6 h-6 text-herb flex-shrink-0" />
+                <div>
+                  <p className="font-display text-2xl md:text-3xl font-bold text-walnut leading-none">15 <span className="text-base text-walnut/35">min</span></p>
+                  <p className="text-xs text-walnut/45 font-ui mt-0.5">Promedio</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-3 py-5">
+                <Heart className="w-6 h-6 text-honey flex-shrink-0" />
+                <div>
+                  <p className="font-display text-2xl md:text-3xl font-bold text-walnut leading-none">100<span className="text-base text-walnut/35">%</span></p>
+                  <p className="text-xs text-walnut/45 font-ui mt-0.5">Casero</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
 
       {/* ======== RECETAS RECIENTES ======== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
