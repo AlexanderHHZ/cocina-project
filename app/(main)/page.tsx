@@ -29,22 +29,29 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ======== HERO ======== */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-linen via-paprika/5 to-linen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-paprika/10 text-paprika text-sm font-medium font-ui mb-6 animate-fade-in">
+      {/* ======== HERO CON BANNER ======== */}
+      <section className="relative overflow-hidden">
+        {/* Fondo */}
+        <div className="absolute inset-0 bg-gradient-to-br from-linen via-paprika/[0.03] to-parchment/50" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0z\' fill=\'none\'/%3E%3Cpath d=\'M20 0v40M0 20h40\' stroke=\'%235C3D2E\' stroke-width=\'0.5\'/%3E%3C/svg%3E")', backgroundSize: '40px 40px' }} />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-paprika/10 text-paprika text-sm font-medium font-ui mb-8 animate-fade-in">
               <Flame className="w-4 h-4" /> Recetas nuevas cada semana
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold leading-tight mb-6 animate-slide-up">
-              Cocina con <span className="text-paprika">alma</span>,{' '}
-              comparte con <span className="text-herb">amor</span>
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6 animate-slide-up">
+              Cocina con{' '}
+              <span className="text-paprika italic">alma</span>,{' '}
+              <br className="hidden sm:block" />
+              comparte con{' '}
+              <span className="text-herb italic">amor</span>
             </h1>
-            <p className="text-lg text-walnut/60 leading-relaxed mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <p className="text-lg text-walnut/55 leading-relaxed mb-8 max-w-lg mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
               Descubre recetas caseras, paso a paso, con ingredientes reales y mucho sabor.
               Desde platos rápidos hasta festines de fin de semana.
             </p>
-            <div className="flex flex-wrap gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <div className="flex flex-wrap justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <Link href="/recetas" className="btn-primary">
                 Explorar recetas <ArrowRight className="w-4 h-4" />
               </Link>
@@ -56,41 +63,45 @@ export default async function HomePage() {
         </div>
 
         {/* Decoración */}
-        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-paprika/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-10 bottom-0 w-64 h-64 bg-herb/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -right-32 top-1/3 w-96 h-96 bg-paprika/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-20 bottom-0 w-72 h-72 bg-herb/5 rounded-full blur-3xl pointer-events-none" />
       </section>
 
       {/* ======== STATS ======== */}
-      <section className="border-b border-walnut/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-3 gap-6 text-center">
-            <div>
-              <p className="font-ui text-2xl md:text-3xl font-bold text-paprika">
-                {formattedRecipes.length}+
-              </p>
-              <p className="text-sm text-walnut/50 mt-1 font-ui">Recetas</p>
+      <section className="border-b border-walnut/10 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex items-center justify-center gap-10 md:gap-16">
+            <div className="text-center">
+              <p className="font-ui text-2xl md:text-3xl font-bold text-paprika">{formattedRecipes.length > 0 ? `${formattedRecipes.length}+` : '0'}</p>
+              <p className="text-xs text-walnut/45 font-ui mt-1">Recetas</p>
             </div>
-            <div>
+            <div className="w-px h-12 bg-walnut/10" />
+            <div className="text-center">
               <p className="font-ui text-2xl md:text-3xl font-bold text-herb">15</p>
-              <p className="text-sm text-walnut/50 mt-1 font-ui">Min promedio</p>
+              <p className="text-xs text-walnut/45 font-ui mt-1">Min promedio</p>
             </div>
-            <div>
+            <div className="w-px h-12 bg-walnut/10" />
+            <div className="text-center">
               <p className="font-ui text-2xl md:text-3xl font-bold text-honey">100%</p>
-              <p className="text-sm text-walnut/50 mt-1 font-ui">Casero</p>
+              <p className="text-xs text-walnut/45 font-ui mt-1">Casero</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ======== RECETAS RECIENTES ======== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <h2 className="font-display text-3xl font-bold">Recetas recientes</h2>
-            <p className="text-walnut/50 mt-2">Lo último que ha salido del horno</p>
+            <p className="text-xs font-ui font-semibold text-paprika uppercase tracking-widest mb-2">
+              Lo último
+            </p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold">
+              Recetas recientes
+            </h2>
           </div>
-          <Link href="/recetas" className="text-sm font-medium font-ui text-paprika hover:underline hidden sm:block">
-            Ver todas →
+          <Link href="/recetas" className="text-sm font-medium font-ui text-paprika hover:text-paprika/80 transition-colors hidden sm:flex items-center gap-1">
+            Ver todas <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -111,24 +122,30 @@ export default async function HomePage() {
             </p>
           </div>
         )}
+
+        {/* Link móvil */}
+        <div className="mt-8 text-center sm:hidden">
+          <Link href="/recetas" className="btn-primary">
+            Ver todas las recetas <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
 
-      {/* ======== CTA ======== */}
-      {!user && (
-        <section className="bg-walnut text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-            <h2 className="font-display text-3xl font-bold mb-4">
-              ¿Listo para cocinar?
-            </h2>
-            <p className="text-white/60 mb-8 max-w-md mx-auto">
-              Regístrate para guardar tus favoritas, dar likes y comentar.
-            </p>
-            <Link href="/register" className="btn-primary !bg-paprika">
-              Crear cuenta gratis
-            </Link>
-          </div>
-        </section>
-      )}
+      {/* ======== BANNER ======== */}
+      <section className="relative">
+        <a
+          href="https://youtube.com/@ingrediente791"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block"
+        >
+          <img
+            src="/images/banner.webp"
+            alt="Ingrediente 791 — Cocina para todos, rico, nutritivo y rápido"
+            className="w-full h-auto object-cover"
+          />
+        </a>
+      </section>
     </>
   );
 }

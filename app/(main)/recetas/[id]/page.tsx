@@ -64,56 +64,16 @@ export default async function RecipeDetailPage({ params }: Props) {
   };
 
   return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Volver */}
-      <Link href="/recetas" className="inline-flex items-center gap-2 text-sm text-walnut/50 hover:text-paprika transition-colors mb-6">
+    <article className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      {/* ── Breadcrumb ── */}
+      <Link href="/recetas" className="inline-flex items-center gap-2 text-sm text-walnut/50 hover:text-paprika transition-colors mb-8 font-ui">
         <ArrowLeft className="w-4 h-4" /> Volver a recetas
       </Link>
 
-      {/* Header */}
-      <header className="mb-8">
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium font-ui ${difficultyColor[recipe.difficulty] ?? 'bg-walnut/10 text-walnut'}`}>
-            {recipe.difficulty}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-walnut/50 font-ui">
-            <Clock className="w-3.5 h-3.5" /> {recipe.prep_time} min
-          </span>
-          {recipe.servings && (
-            <span className="flex items-center gap-1 text-xs text-walnut/50 font-ui">
-              <Users className="w-3.5 h-3.5" /> {recipe.servings} porcion{recipe.servings !== 1 ? 'es' : ''}
-            </span>
-          )}
-          <span className="flex items-center gap-1 text-xs text-walnut/50 font-ui">
-            <Calendar className="w-3.5 h-3.5" /> {formatDate(recipe.created_at)}
-          </span>
-        </div>
-        <h1 className="font-display text-3xl md:text-4xl font-bold leading-tight mb-3">
-          {recipe.title}
-        </h1>
-        <p className="text-lg text-walnut/60 leading-relaxed">
-          {recipe.description}
-        </p>
-
-        {/* Autor */}
-        {recipe.author && (
-          <div className="flex items-center gap-3 mt-5">
-            <div className="w-10 h-10 rounded-full bg-paprika/10 flex items-center justify-center">
-              <span className="text-sm font-bold text-paprika">
-                {recipe.author.full_name?.charAt(0) ?? recipe.author.email?.charAt(0) ?? 'C'}
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-medium">{recipe.author.full_name ?? 'Chef'}</p>
-              <p className="text-xs text-walnut/40 font-ui">Autor</p>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* Imagen */}
+      {/* ── Hero: Imagen principal ── */}
       {recipe.image_url && (
-        <div className="relative aspect-video rounded-2xl overflow-hidden bg-walnut/5 mb-10">
+        <div className="relative aspect-video rounded-3xl overflow-hidden bg-walnut/5 mb-8 shadow-lg">
           <Image
             src={recipe.image_url}
             alt={recipe.title}
@@ -124,31 +84,80 @@ export default async function RecipeDetailPage({ params }: Props) {
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2NzUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2U4ZTVkZiIvPjwvc3ZnPg=="
           />
+          {/* Gradient overlay en la parte inferior */}
+          <div className="absolute inset-0 bg-gradient-to-t from-walnut/40 via-transparent to-transparent" />
+          {/* Badge de dificultad sobre la imagen */}
+          <span className={`absolute top-4 right-4 px-4 py-1.5 rounded-full text-xs font-semibold font-ui backdrop-blur-md shadow-sm ${difficultyColor[recipe.difficulty] ?? 'bg-walnut/10 text-walnut'}`}>
+            {recipe.difficulty}
+          </span>
         </div>
       )}
 
-      {/* Acciones */}
-      <div className="flex flex-wrap gap-3 mb-10">
-        <LikeButton
-          key={`like-${stateKey}`}
-          recipeId={recipe.id}
-          userId={userId}
-          initialLiked={isLiked}
-          initialCount={likesCount}
-        />
-        <FavoriteButton
-          key={`fav-${stateKey}`}
-          recipeId={recipe.id}
-          userId={userId}
-          initialFavorited={isFavorited}
-        />
-      </div>
+      {/* ── Header de la receta ── */}
+      <header className="mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-4 text-walnut/50">
+          {!recipe.image_url && (
+            <span className={`px-3 py-1 rounded-full text-xs font-medium font-ui ${difficultyColor[recipe.difficulty] ?? 'bg-walnut/10 text-walnut'}`}>
+              {recipe.difficulty}
+            </span>
+          )}
+          <span className="flex items-center gap-1.5 text-xs font-ui">
+            <Clock className="w-3.5 h-3.5" /> {recipe.prep_time} min
+          </span>
+          {recipe.servings && (
+            <span className="flex items-center gap-1.5 text-xs font-ui">
+              <Users className="w-3.5 h-3.5" /> {recipe.servings} porcion{recipe.servings !== 1 ? 'es' : ''}
+            </span>
+          )}
+          <span className="flex items-center gap-1.5 text-xs font-ui">
+            <Calendar className="w-3.5 h-3.5" /> {formatDate(recipe.created_at)}
+          </span>
+        </div>
 
-      {/* Video de YouTube */}
+        <h1 className="font-display text-3xl md:text-5xl font-bold leading-tight mb-4">
+          {recipe.title}
+        </h1>
+        <p className="text-lg text-walnut/60 leading-relaxed max-w-3xl">
+          {recipe.description}
+        </p>
+
+        {/* Autor + Acciones */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-6 pt-6 border-t border-walnut/10">
+          {recipe.author && (
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-paprika/10 flex items-center justify-center ring-2 ring-paprika/20">
+                <span className="text-sm font-bold text-paprika">
+                  {recipe.author.full_name?.charAt(0) ?? recipe.author.email?.charAt(0) ?? 'C'}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{recipe.author.full_name ?? 'Chef'}</p>
+                <p className="text-xs text-walnut/40 font-ui">Autor de la receta</p>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <LikeButton
+              key={`like-${stateKey}`}
+              recipeId={recipe.id}
+              userId={userId}
+              initialLiked={isLiked}
+              initialCount={likesCount}
+            />
+            <FavoriteButton
+              key={`fav-${stateKey}`}
+              recipeId={recipe.id}
+              userId={userId}
+              initialFavorited={isFavorited}
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ── Video de YouTube (sin título "Video") ── */}
       {recipe.video_url && (
-        <div className="mb-10">
-          <h2 className="font-display text-lg font-bold mb-4">Video</h2>
-          <div className="relative aspect-video rounded-2xl overflow-hidden bg-walnut/5">
+        <div className="mb-12">
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-walnut/5 shadow-md ring-1 ring-walnut/10">
             <iframe
               src={recipe.video_url}
               title={`Video: ${recipe.title}`}
@@ -160,22 +169,22 @@ export default async function RecipeDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Contenido */}
+      {/* ── Contenido: Ingredientes + Pasos ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
         {/* Ingredientes */}
         <div className="md:col-span-1">
-          <div className="bg-white rounded-2xl border border-walnut/10 p-6 sticky top-24">
+          <div className="bg-parchment/50 rounded-2xl border border-walnut/8 p-6 sticky top-24">
             <h2 className="font-display text-lg font-bold mb-4 flex items-center gap-2">
               <ChefHat className="w-5 h-5 text-paprika" /> Ingredientes
             </h2>
             {recipe.servings && (
-              <p className="text-xs text-walnut/40 mb-3 flex items-center gap-1.5 font-ui">
+              <p className="text-xs text-walnut/40 mb-4 flex items-center gap-1.5 font-ui">
                 <Users className="w-3.5 h-3.5" /> Para {recipe.servings} porcion{recipe.servings !== 1 ? 'es' : ''}
               </p>
             )}
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {recipe.ingredients.map((ing: string, i: number) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
+                <li key={i} className="flex items-start gap-3 text-sm leading-relaxed">
                   <span className="w-1.5 h-1.5 rounded-full bg-paprika mt-2 flex-shrink-0" />
                   {ing}
                 </li>
@@ -186,21 +195,30 @@ export default async function RecipeDetailPage({ params }: Props) {
 
         {/* Pasos */}
         <div className="md:col-span-2">
-          <h2 className="font-display text-lg font-bold mb-6">Preparación</h2>
-          <div className="space-y-6">
-            {recipe.steps.map((step: string, i: number) => (
-              <div key={i} className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-paprika/10 text-paprika flex items-center justify-center text-sm font-bold font-ui flex-shrink-0 mt-0.5">
-                  {i + 1}
+          <h2 className="font-display text-xl font-bold mb-8">Preparación</h2>
+          <div className="relative">
+            {/* Línea de timeline vertical */}
+            <div className="absolute left-[18px] top-5 bottom-5 w-px bg-walnut/10 hidden md:block" />
+
+            <div className="space-y-4">
+              {recipe.steps.map((step: string, i: number) => (
+                <div key={i} className="flex gap-5 group relative">
+                  {/* Número del paso */}
+                  <div className="relative z-10 w-9 h-9 rounded-full bg-paprika text-white flex items-center justify-center text-sm font-bold font-ui flex-shrink-0 mt-4 shadow-sm group-hover:scale-110 transition-transform">
+                    {i + 1}
+                  </div>
+                  {/* Card del paso */}
+                  <div className="flex-1 bg-white rounded-xl border border-walnut/8 p-5 group-hover:border-paprika/20 group-hover:shadow-sm transition-all duration-200">
+                    <p className="text-[15px] text-walnut/85 leading-[1.75]">{step}</p>
+                  </div>
                 </div>
-                <p className="text-walnut/80 leading-relaxed pt-1">{step}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Comentarios */}
+      {/* ── Comentarios ── */}
       <div className="border-t border-walnut/10 pt-10">
         <CommentSection recipeId={recipe.id} initialComments={comments ?? []} />
       </div>

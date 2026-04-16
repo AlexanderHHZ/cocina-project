@@ -7,13 +7,13 @@ interface Props {
   recipe: Recipe;
 }
 
-export default function RecipeCard({ recipe }: Props) {
-  const difficultyColor = {
-    'fácil':   'bg-herb/10 text-herb',
-    'media':   'bg-honey/10 text-honey',
-    'difícil': 'bg-wine/10 text-wine',
-  };
+const difficultyStyle: Record<string, string> = {
+  'fácil':   'text-herb',
+  'media':   'text-honey',
+  'difícil': 'text-wine',
+};
 
+export default function RecipeCard({ recipe }: Props) {
   return (
     <Link href={`/recetas/${recipe.slug}`} className="card group block">
       {/* Imagen */}
@@ -34,10 +34,6 @@ export default function RecipeCard({ recipe }: Props) {
             <ChefHat className="w-12 h-12 text-walnut/15" />
           </div>
         )}
-        {/* Badge dificultad */}
-        <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium font-ui backdrop-blur-sm ${difficultyColor[recipe.difficulty as keyof typeof difficultyColor] ?? 'bg-walnut/10 text-walnut'}`}>
-          {recipe.difficulty}
-        </span>
       </div>
 
       {/* Contenido */}
@@ -52,6 +48,10 @@ export default function RecipeCard({ recipe }: Props) {
         {/* Meta */}
         <div className="flex items-center justify-between text-xs text-walnut/50 font-ui">
           <div className="flex items-center gap-3">
+            <span className={`font-semibold ${difficultyStyle[recipe.difficulty as keyof typeof difficultyStyle] ?? 'text-walnut/50'}`}>
+              {recipe.difficulty}
+            </span>
+            <span className="text-walnut/20">·</span>
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" /> {recipe.prep_time} min
             </span>
