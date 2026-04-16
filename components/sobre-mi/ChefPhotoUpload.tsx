@@ -4,32 +4,28 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Camera, Loader2, CheckCircle, X } from 'lucide-react';
-import { createSupabaseBrowser } from '@/lib/supabase-browser';
 
 interface Props {
   currentPhotoUrl: string | null;
-  adminId: string;
 }
 
-export default function ChefPhotoUpload({ currentPhotoUrl, adminId }: Props) {
+export default function ChefPhotoUpload({ currentPhotoUrl }: Props) {
   const [preview, setPreview]     = useState<string | null>(currentPhotoUrl);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess]     = useState(false);
   const [error, setError]         = useState('');
   const inputRef                  = useRef<HTMLInputElement>(null);
-  const supabase                  = createSupabaseBrowser();
   const router                    = useRouter();
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo
+    // Validaciones rápidas en cliente (el servidor también valida)
     if (!file.type.startsWith('image/')) {
       setError('Solo se permiten imágenes (JPG, PNG, WebP).');
       return;
     }
-    // Validar tamaño (máx 5 MB)
     if (file.size > 5 * 1024 * 1024) {
       setError('La imagen no puede superar 5 MB.');
       return;
@@ -39,37 +35,46 @@ export default function ChefPhotoUpload({ currentPhotoUrl, adminId }: Props) {
     setSuccess(false);
     setUploading(true);
 
+    let localPreview: string | null = null;
+
     try {
-      // Convertir a WebP con canvas para optimizar
+      // 1. Convertir a WebP en el navegador (ahorra ancho de banda)
       const webpBlob = await convertToWebP(file, 800);
-      const path = `chef-photo-${adminId}-${Date.now()}.webp`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('recipe-images')
-        .upload(path, webpBlob, { upsert: true, contentType: 'image/webp' });
+      // 2. Preview inmediato con la versión local
+      localPreview = URL.createObjectURL(webpBlob);
+      setPreview(localPreview);
 
-      if (uploadError) throw new Error(uploadError.message);
+      // 3. Enviar al API route (servidor valida admin + guarda todo)
+      const formData = new FormData();
+      formData.append('file', webpBlob, 'chef-photo.webp');
 
-      const { data: urlData } = supabase.storage
-        .from('recipe-images')
-        .getPublicUrl(path);
+      const res = await fetch('/api/chef-photo', {
+        method: 'POST',
+        body: formData,
+      });
 
-      const publicUrl = urlData.publicUrl;
+      const json = await res.json();
 
-      // Guardar en profiles
-      const { error: dbError } = await supabase
-        .from('profiles')
-        .update({ chef_photo_url: publicUrl })
-        .eq('id', adminId);
+      if (!res.ok) {
+        throw new Error(json.error ?? `Error ${res.status}`);
+      }
 
-      if (dbError) throw new Error(dbError.message);
+      // 4. Reemplazar preview local por URL pública final
+      setPreview(json.url);
+      if (localPreview) URL.revokeObjectURL(localPreview);
 
-      setPreview(publicUrl);
-      router.refresh(); // ← Invalida el caché de Server Components para que /sobre-mi recargue el perfil
+      // 5. Invalidar caché de Server Components para que /sobre-mi recargue
+      router.refresh();
+
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
+      console.error('[ChefPhotoUpload]', err);
       setError(err.message ?? 'Error al subir la foto.');
+      // Revertir preview si falla
+      setPreview(currentPhotoUrl);
+      if (localPreview) URL.revokeObjectURL(localPreview);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -111,6 +116,7 @@ export default function ChefPhotoUpload({ currentPhotoUrl, adminId }: Props) {
             fill
             className="object-cover"
             sizes="224px"
+            unoptimized={preview.startsWith('blob:')}
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2">

@@ -1,7 +1,10 @@
+
 import { createSupabaseServer } from '@/lib/supabase-server';
 import Image from 'next/image';
 import { Youtube, Instagram, Facebook } from 'lucide-react';
 import ChefPhotoUpload from '@/components/sobre-mi/ChefPhotoUpload';
+
+const CHEF_NAME = 'Chef Ingrediente 791';
 
 const SOCIAL = [
   { name: 'YouTube',   href: 'https://youtube.com/@ingrediente791',   icon: Youtube,   color: 'hover:text-red-500 hover:border-red-200' },
@@ -25,13 +28,16 @@ const VALORES = [
 export default async function SobreMiPage() {
   const supabase = await createSupabaseServer();
 
-  const { data: adminProfile } = await supabase
-    .from('profiles')
-    .select('id, full_name, chef_photo_url')
-    .eq('is_admin', true)
-    .limit(1)
+  // 1. Cargar settings globales del sitio (foto del chef)
+  const { data: settings } = await supabase
+    .from('site_settings')
+    .select('chef_photo_url')
+    .eq('id', 1)
     .single();
 
+  const chefPhoto = settings?.chef_photo_url ?? null;
+
+  // 2. Verificar si el visitante es admin (para mostrar el uploader)
   const { data: { user } } = await supabase.auth.getUser();
   let isAdmin = false;
   if (user) {
@@ -39,10 +45,6 @@ export default async function SobreMiPage() {
       .from('profiles').select('is_admin').eq('id', user.id).single();
     isAdmin = viewerProfile?.is_admin ?? false;
   }
-
-  const chefName  = adminProfile?.full_name ?? 'Chef Ingrediente 791';
-  const chefPhoto = (adminProfile as any)?.chef_photo_url ?? null;
-  const adminId   = adminProfile?.id ?? '';
 
   return (
     <div className="overflow-hidden">
@@ -59,15 +61,15 @@ export default async function SobreMiPage() {
 
             {/* Foto del chef */}
             <div className="flex-shrink-0 flex flex-col items-center">
-              {isAdmin && adminId ? (
-                <ChefPhotoUpload currentPhotoUrl={chefPhoto} adminId={adminId} />
+              {isAdmin ? (
+                <ChefPhotoUpload currentPhotoUrl={chefPhoto} />
               ) : (
                 <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden bg-parchment border-4 border-white shadow-xl">
                   {chefPhoto ? (
-                    <Image src={chefPhoto} alt={`Foto de ${chefName}`} fill className="object-cover" sizes="224px" priority />
+                    <Image src={chefPhoto} alt={`Foto de ${CHEF_NAME}`} fill className="object-cover" sizes="224px" priority />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-6xl font-bold text-paprika font-display">{chefName.charAt(0)}</span>
+                      <span className="text-6xl font-bold text-paprika font-display">{CHEF_NAME.charAt(0)}</span>
                     </div>
                   )}
                 </div>
@@ -90,7 +92,7 @@ export default async function SobreMiPage() {
                 Ingrediente 791
               </p>
               <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight mb-5 text-walnut">
-                Hola, soy <span className="text-paprika italic">{chefName}</span>
+                Hola, soy <span className="text-paprika italic">{CHEF_NAME}</span>
               </h1>
               <p className="text-lg text-walnut/65 leading-relaxed mb-6 max-w-xl">
                 Chef casero, apasionado por la gastronomía mexicana y latinoamericana.
@@ -159,7 +161,7 @@ export default async function SobreMiPage() {
                 </p>
                 <footer className="flex items-center gap-3">
                   <div className="w-8 h-0.5 bg-paprika rounded-full" />
-                  <cite className="not-italic text-sm font-ui font-medium text-paprika">{chefName}</cite>
+                  <cite className="not-italic text-sm font-ui font-medium text-paprika">{CHEF_NAME}</cite>
                 </footer>
               </blockquote>
               <div className="absolute bottom-4 right-4 w-16 h-16 rounded-full border-2 border-paprika/10" />
