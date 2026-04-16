@@ -458,3 +458,39 @@ CREATE POLICY "PostComments: usuario actualiza"
 
 ALTER TABLE public.recipes
 ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+
+-- =============================================
+-- AGREGAR COLUMNA PORCIONES (servings) A RECETAS
+-- =============================================
+-- Ejecutar en: Supabase Dashboard → SQL Editor
+ 
+ALTER TABLE public.recipes
+ADD COLUMN IF NOT EXISTS servings INTEGER NOT NULL DEFAULT 4;
+
+
+-- ============================================================
+-- Migración: campo chef_photo_url en profiles
+-- Ejecutar en: Supabase Dashboard → SQL Editor
+-- ============================================================
+ 
+-- 1. Agregar columna chef_photo_url a la tabla profiles
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS chef_photo_url TEXT;
+ 
+-- 2. Política para que el admin pueda actualizar su propio perfil
+--    (ya debería existir, pero la reforzamos por si acaso)
+DROP POLICY IF EXISTS "Profiles: usuario actualiza su perfil" ON public.profiles;
+CREATE POLICY "Profiles: usuario actualiza su perfil"
+  ON public.profiles FOR UPDATE
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+ 
+-- 3. Política de storage: permitir que el admin ACTUALICE (upsert) en recipe-images
+--    (necesario para sobreescribir la foto del chef)
+DROP POLICY IF EXISTS "Storage: admin actualiza imágenes" ON storage.objects;
+CREATE POLICY "Storage: admin actualiza imágenes"
+  ON storage.objects FOR UPDATE
+  USING (bucket_id = 'recipe-images' AND auth.uid() IS NOT NULL);
+ 
+-- ✓ Listo. La columna chef_photo_url ya está disponible en profiles.
+ 
