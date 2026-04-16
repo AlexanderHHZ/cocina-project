@@ -12,13 +12,6 @@ const SOCIAL = [
   { name: 'Facebook',  href: 'https://facebook.com/ingrediente791',   icon: Facebook,  color: 'hover:text-blue-500 hover:border-blue-200' },
 ];
 
-const STATS = [
-  { value: '150+',  label: 'Recetas publicadas' },
-  { value: '3 años', label: 'En la cocina' },
-  { value: '100%',  label: 'Ingredientes reales' },
-  { value: '∞',     label: 'Pasión por cocinar' },
-];
-
 const VALORES = [
   { emoji: '🌽', title: 'Ingredientes de verdad',  desc: 'Sin conservadores, sin atajos. Cada receta empieza en el mercado, no en el supermercado de conveniencia.' },
   { emoji: '📐', title: 'Técnica accesible',        desc: 'Métodos profesionales explicados en pasos que cualquiera puede seguir desde su cocina de casa.' },
@@ -45,6 +38,20 @@ export default async function SobreMiPage() {
       .from('profiles').select('is_admin').eq('id', user.id).single();
     isAdmin = viewerProfile?.is_admin ?? false;
   }
+
+  // 3. Contar recetas publicadas (dinámico)
+  const { count: recipesCount } = await supabase
+    .from('recipes')
+    .select('*', { count: 'exact', head: true });
+
+  const recipeCountDisplay = recipesCount && recipesCount > 0 ? `${recipesCount}+` : '0';
+
+  const STATS = [
+    { value: recipeCountDisplay, label: 'Recetas publicadas' },
+    { value: '3 años', label: 'En la cocina' },
+    { value: '100%',  label: 'Ingredientes reales' },
+    { value: '∞',     label: 'Pasión por cocinar' },
+  ];
 
   return (
     <div className="overflow-hidden">

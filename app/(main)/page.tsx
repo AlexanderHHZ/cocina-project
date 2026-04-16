@@ -27,6 +27,13 @@ export default async function HomePage() {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Conteo real de recetas (independiente del limit de 6)
+  const { count: totalRecipes } = await supabase
+    .from('recipes')
+    .select('*', { count: 'exact', head: true });
+
+  const recipeCountDisplay = totalRecipes && totalRecipes > 0 ? `${totalRecipes}+` : '0';
+
   return (
     <>
       {/* ======== HERO CON BANNER ======== */}
@@ -72,7 +79,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex items-center justify-center gap-10 md:gap-16">
             <div className="text-center">
-              <p className="font-ui text-2xl md:text-3xl font-bold text-paprika">{formattedRecipes.length > 0 ? `${formattedRecipes.length}+` : '0'}</p>
+              <p className="font-ui text-2xl md:text-3xl font-bold text-paprika">{recipeCountDisplay}</p>
               <p className="text-xs text-walnut/45 font-ui mt-1">Recetas</p>
             </div>
             <div className="w-px h-12 bg-walnut/10" />
@@ -94,7 +101,7 @@ export default async function HomePage() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-xs font-ui font-semibold text-paprika uppercase tracking-widest mb-2">
-              Lo último
+              Lo último del horno
             </p>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
               Recetas recientes
