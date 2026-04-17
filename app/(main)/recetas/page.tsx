@@ -9,21 +9,48 @@ export const dynamic = 'force-dynamic';
 export default async function RecetasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ search?: string; q?: string }>;
 }) {
-  const { q: query } = await searchParams;
+  // Aceptar tanto ?search= (enviado desde LiveSearchBar/Navbar) como ?q= por compatibilidad
+  const params = await searchParams;
+  const query = (params.search ?? params.q ?? '').trim();
+
   const supabase = await createSupabaseServer();
 
   let formattedRecipes: Recipe[] = [];
 
   if (query) {
+    // Normalizar (sin acentos, minúsculas)
+    const qLower = query.toLowerCase();
+    const qNorm = qLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // Traemos todas las recetas y filtramos en JS.
+    // Razón: Supabase `cs` solo hace match exacto del elemento del array,
+    // no sirve para buscar "huevo" dentro de "3 huevos grandes".
     const { data } = await supabase
       .from('recipes')
       .select(`*, likes_count:likes(count), comments_count:comments(count)`)
-      .or(`title.ilike.%${query}%,ingredients.cs.{${query}}`)
       .order('created_at', { ascending: false });
 
-    formattedRecipes = (data ?? []).map((r: any) => ({
+    const filtered = (data ?? []).filter((r: any) => {
+      // Match por título (con y sin acentos)
+      const titleLower = (r.title ?? '').toLowerCase();
+      const titleNorm = titleLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (titleLower.includes(qLower) || titleNorm.includes(qNorm)) return true;
+
+      // Match por ingredientes (substring dentro de cada ingrediente)
+      if (Array.isArray(r.ingredients)) {
+        return r.ingredients.some((ing: string) => {
+          const ingLower = (ing ?? '').toLowerCase();
+          const ingNorm = ingLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          return ingLower.includes(qLower) || ingNorm.includes(qNorm);
+        });
+      }
+
+      return false;
+    });
+
+    formattedRecipes = filtered.map((r: any) => ({
       ...r,
       likes_count: r.likes_count?.[0]?.count ?? 0,
       comments_count: r.comments_count?.[0]?.count ?? 0,
