@@ -235,11 +235,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-24 gap-5">
 
           {/* ── Logo ── */}
-          <Link href="/" className="flex-shrink-0 group">
+          <Link href="/" className="flex-shrink-0 group flex items-center h-full py-2">
             <img
               src="/images/logo.webp"
               alt="Ingrediente 791"
-              className="h-[68px] w-auto transition-transform duration-200 group-hover:scale-105"
+              className="h-[76px] w-auto transition-transform duration-200 group-hover:scale-105"
             />
           </Link>
 
@@ -361,7 +361,7 @@ export default function Navbar() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium font-ui
                            text-white bg-paprika hover:bg-paprika/90 transition-colors shadow-sm">
                 <LogIn className="w-[18px] h-[18px]" />
-                <span className="hidden sm:inline">Iniciar sesión</span>
+                <span className="hidden sm:inline">Entrar</span>
               </Link>
             )}
 

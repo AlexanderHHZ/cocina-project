@@ -2,6 +2,7 @@ import { createSupabaseServer } from '@/lib/supabase-server';
 import RecipeCard from '@/components/recetas/RecipeCard';
 import Link from 'next/link';
 import { ChefHat, ArrowRight, Flame, Clock, Heart } from 'lucide-react';
+import ScrollIndicator from '@/components/ui/ScrollIndicator';
 import type { Recipe } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -36,27 +37,46 @@ export default async function HomePage() {
 
   return (
     <>
+      <ScrollIndicator />
       {/* ======== HERO + STATS = pantalla completa ======== */}
       <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 96px)' }}>
+        {/* Banner */}
+        <div className="relative flex-shrink-0">
+          <a
+            href="https://youtube.com/@ingrediente791"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <img
+              src="/images/banner.webp"
+              alt="Ingrediente 791 — Cocina para todos, rico, nutritivo y rápido"
+              className="w-full h-auto object-cover"
+            />
+          </a>
+          {/* Degradado suave para fundir con el fondo */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-linen to-transparent" />
+        </div>
+
         {/* Hero - se estira para llenar */}
         <section className="relative overflow-hidden flex-1 flex items-center">
           {/* Fondo */}
           <div className="absolute inset-0 bg-gradient-to-br from-linen via-paprika/[0.03] to-parchment/50" />
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h40v40H0z\' fill=\'none\'/%3E%3Cpath d=\'M20 0v40M0 20h40\' stroke=\'%235C3D2E\' stroke-width=\'0.5\'/%3E%3C/svg%3E")', backgroundSize: '40px 40px' }} />
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 w-full">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 w-full">
             <div className="max-w-2xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-paprika/10 text-paprika text-sm font-medium font-ui mb-8 animate-fade-in">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-paprika/10 text-paprika text-sm font-medium font-ui mb-5 animate-fade-in">
                 <Flame className="w-4 h-4" /> Recetas nuevas cada semana
               </div>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-6 animate-slide-up">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.1] mb-4 animate-slide-up">
                 Cocina con{' '}
                 <span className="text-paprika italic">alma</span>,{' '}
                 <br className="hidden sm:block" />
                 comparte con{' '}
                 <span className="text-herb italic">amor</span>
               </h1>
-              <p className="text-lg text-walnut/55 leading-relaxed mb-8 max-w-lg mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <p className="text-base text-walnut/55 leading-relaxed mb-6 max-w-lg mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 Descubre recetas caseras, paso a paso, con ingredientes reales y mucho sabor.
                 Desde platos rápidos hasta festines de fin de semana.
               </p>
@@ -64,7 +84,11 @@ export default async function HomePage() {
                 <Link href="/recetas" className="btn-primary">
                   Explorar recetas <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="/sobre-mi" className="btn-secondary">
+                <Link href="/sobre-mi" className="inline-flex items-center justify-center gap-2
+                           border-2 border-walnut/30 text-walnut px-6 py-2.5 rounded-lg
+                           font-medium font-ui transition-all duration-200
+                           hover:border-paprika hover:text-paprika hover:bg-paprika/5
+                           active:scale-[0.98]">
                   Conocer más
                 </Link>
               </div>
@@ -148,21 +172,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ======== BANNER ======== */}
-      <section className="relative">
-        <a
-          href="https://youtube.com/@ingrediente791"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <img
-            src="/images/banner.webp"
-            alt="Ingrediente 791 — Cocina para todos, rico, nutritivo y rápido"
-            className="w-full h-auto object-cover"
-          />
-        </a>
-      </section>
     </>
   );
 }
