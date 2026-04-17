@@ -135,7 +135,7 @@ export default async function HomePage() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-xs font-ui font-semibold text-paprika uppercase tracking-widest mb-2">
-              Lo último del horno
+              Lo último
             </p>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
               Recetas recientes

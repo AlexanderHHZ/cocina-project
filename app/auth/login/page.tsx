@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
-import { LogIn, Mail, ArrowLeft } from 'lucide-react';
+import { LogIn, Mail, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -198,16 +199,25 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium mb-2">Contraseña</label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="input-field"
-                    placeholder="••••••••"
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="input-field !pr-12"
+                      placeholder="••••••••"
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-charcoal/40 hover:text-charcoal transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Enlace de ¿Olvidaste tu contraseña? */}
@@ -216,7 +226,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => {
                       setShowForgot(true);
-                      setForgotEmail(email); // Pre-llenar con el email si ya lo escribió
+                      setForgotEmail(email);
                       setError('');
                     }}
                     className="text-sm text-terra hover:underline font-medium"

@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -68,7 +70,7 @@ export default function RegisterPage() {
                 iniciar sesión.
               </p>
               <Link href="/login" className="btn-primary">
-                Ir a iniciar sesión
+                Ir al login
               </Link>
             </div>
           ) : (
@@ -132,33 +134,51 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium mb-2">Contraseña</label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="input-field"
-                    placeholder="Mínimo 6 caracteres"
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="input-field !pr-12"
+                      placeholder="Mínimo 6 caracteres"
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-charcoal/40 hover:text-charcoal transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">Confirmar contraseña</label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="input-field"
-                    placeholder="Repite tu contraseña"
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="input-field !pr-12"
+                      placeholder="Repite tu contraseña"
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-charcoal/40 hover:text-charcoal transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <button type="submit" disabled={loading} className="btn-primary w-full">
                   <UserPlus className="w-4 h-4" />
-                  {loading ? 'Registrando...' : 'Crear cuenta'}
+                  {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                 </button>
               </form>
 

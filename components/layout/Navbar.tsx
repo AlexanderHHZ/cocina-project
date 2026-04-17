@@ -361,7 +361,7 @@ export default function Navbar() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium font-ui
                            text-white bg-paprika hover:bg-paprika/90 transition-colors shadow-sm">
                 <LogIn className="w-[18px] h-[18px]" />
-                <span className="hidden sm:inline">Entrar</span>
+                <span className="hidden sm:inline">Iniciar sesión</span>
               </Link>
             )}
 

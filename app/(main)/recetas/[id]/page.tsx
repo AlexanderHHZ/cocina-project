@@ -84,23 +84,15 @@ export default async function RecipeDetailPage({ params }: Props) {
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2NzUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2U4ZTVkZiIvPjwvc3ZnPg=="
           />
-          {/* Gradient overlay en la parte inferior */}
-          <div className="absolute inset-0 bg-gradient-to-t from-walnut/40 via-transparent to-transparent" />
-          {/* Badge de dificultad sobre la imagen */}
-          <span className={`absolute top-4 right-4 px-4 py-1.5 rounded-full text-xs font-semibold font-ui backdrop-blur-md shadow-sm ${difficultyColor[recipe.difficulty] ?? 'bg-walnut/10 text-walnut'}`}>
-            {recipe.difficulty}
-          </span>
         </div>
       )}
 
       {/* ── Header de la receta ── */}
       <header className="mb-8">
         <div className="flex flex-wrap items-center gap-3 mb-4 text-walnut/50">
-          {!recipe.image_url && (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium font-ui ${difficultyColor[recipe.difficulty] ?? 'bg-walnut/10 text-walnut'}`}>
-              {recipe.difficulty}
-            </span>
-          )}
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold font-ui ${difficultyColor[recipe.difficulty] ?? 'bg-walnut/10 text-walnut'}`}>
+            {recipe.difficulty}
+          </span>
           <span className="flex items-center gap-1.5 text-xs font-ui">
             <Clock className="w-3.5 h-3.5" /> {recipe.prep_time} min
           </span>
