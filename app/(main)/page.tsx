@@ -37,7 +37,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ======== HERO + STATS = pantalla completa ======== */}
-      <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 96px)' }}>
+      <div className="flex flex-col" style={{ minHeight: 'calc(100dvh - 96px)' }}>
         {/* Hero - se estira para llenar */}
         <section className="relative overflow-hidden flex-1 flex items-center">
           {/* Fondo */}
@@ -111,7 +111,7 @@ export default async function HomePage() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-xs font-ui font-semibold text-paprika uppercase tracking-widest mb-2">
-              Lo último
+              Lo último del horno
             </p>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
               Recetas recientes
