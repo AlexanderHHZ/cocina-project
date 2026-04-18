@@ -67,7 +67,7 @@ export default function TurnstileWidget({ siteKey, onVerify, onError }: Turnstil
         'error-callback': () => onError?.(),
         'expired-callback': () => onError?.(),
         theme: 'auto',
-        appearance: 'interaction-only', // Invisible salvo si detecta sospecha
+        appearance: 'always', // Invisible salvo si detecta sospecha
       });
       return true;
     };
