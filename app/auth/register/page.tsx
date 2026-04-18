@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
+import { validateEmail } from '@/lib/email-validation';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [successEmail, setSuccessEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const supabase = createSupabaseBrowser();
 
@@ -21,18 +23,30 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
+    // ── Validación de email ANTES de llamar a Supabase ──
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.ok) {
+      setError(emailCheck.error);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signUp({
-      email,
+      email: emailCheck.email, // usamos el email ya normalizado
       password,
       options: {
-        data: { full_name: fullName },
+        data: { full_name: fullName.trim() },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -41,6 +55,7 @@ export default function RegisterPage() {
     if (authError) {
       setError(authError.message);
     } else {
+      setSuccessEmail(emailCheck.email);
       setSuccess(true);
     }
   };
@@ -63,11 +78,14 @@ export default function RegisterPage() {
               <div className="w-16 h-16 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <UserPlus className="w-7 h-7 text-sage" />
               </div>
-              <h2 className="font-display text-xl font-bold mb-2">¡Cuenta creada!</h2>
-              <p className="text-sm text-charcoal/60 mb-4">
-                Revisa tu email para confirmar tu cuenta. Si tienes habilitada la opción
-                &quot;Confirm email&quot; en Supabase, recibirás un enlace. Si no, ya puedes
-                iniciar sesión.
+              <h2 className="font-display text-xl font-bold mb-2">¡Revisa tu correo!</h2>
+              <p className="text-sm text-charcoal/60 mb-2">
+                Enviamos un enlace de confirmación a:
+              </p>
+              <p className="text-sm font-medium text-charcoal mb-4">{successEmail}</p>
+              <p className="text-xs text-charcoal/50 mb-6">
+                Haz click en el enlace para activar tu cuenta. Si no lo ves, revisa la
+                carpeta de <span className="font-medium">spam</span> o correo no deseado.
               </p>
               <Link href="/login" className="btn-primary">
                 Ir al login
