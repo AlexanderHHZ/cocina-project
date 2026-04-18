@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import { validateEmail } from '@/lib/email-validation';
+import TurnstileWidget from '@/components/auth/TurnstileWidget';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -17,13 +20,24 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [successEmail, setSuccessEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+
   const supabase = createSupabaseBrowser();
+
+  const handleCaptchaVerify = useCallback((token: string) => {
+    setCaptchaToken(token);
+  }, []);
+
+  const handleCaptchaError = useCallback(() => {
+    setCaptchaToken(null);
+  }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // ── Validación de email ANTES de llamar a Supabase ──
+    // ── Validaciones cliente ──
     const emailCheck = validateEmail(email);
     if (!emailCheck.ok) {
       setError(emailCheck.error);
@@ -40,20 +54,30 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!captchaToken) {
+      setError('Por favor completa la verificación de seguridad.');
+      return;
+    }
+
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signUp({
-      email: emailCheck.email, // usamos el email ya normalizado
+      email: emailCheck.email,
       password,
       options: {
         data: { full_name: fullName.trim() },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        captchaToken, // ← Supabase lo verifica con Cloudflare
       },
     });
 
     setLoading(false);
+
     if (authError) {
       setError(authError.message);
+      // Resetear captcha tras un error (los tokens son de un solo uso)
+      setCaptchaToken(null);
+      setCaptchaResetKey((k) => k + 1);
     } else {
       setSuccessEmail(emailCheck.email);
       setSuccess(true);
@@ -194,6 +218,19 @@ export default function RegisterPage() {
                     </button>
                   </div>
                 </div>
+
+                {/* Cloudflare Turnstile */}
+                {TURNSTILE_SITE_KEY && (
+                  <div className="pt-2">
+                    <TurnstileWidget
+                      key={captchaResetKey}
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onVerify={handleCaptchaVerify}
+                      onError={handleCaptchaError}
+                    />
+                  </div>
+                )}
+
                 <button type="submit" disabled={loading} className="btn-primary w-full">
                   <UserPlus className="w-4 h-4" />
                   {loading ? 'Creando cuenta...' : 'Crear cuenta'}
