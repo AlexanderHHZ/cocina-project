@@ -274,7 +274,7 @@ export default function Navbar() {
                   onFocus={handleFocus}
                   onBlur={handleBlur}
                   onKeyDown={handleKeyDown}
-                  placeholder="Buscar recetas..."
+                  placeholder="Buscar por título o ingrediente..."
                   className="w-full h-12 pl-11 pr-10 border border-walnut/12 bg-linen/50 rounded-l-xl
                              text-sm font-ui placeholder:text-walnut/35
                              focus:outline-none focus:bg-white transition-all duration-200
