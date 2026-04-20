@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
+import TurnstileWidget from '@/components/auth/TurnstileWidget';
 import { LogIn, Mail, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +16,10 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Captcha del login
+  const [loginCaptchaToken, setLoginCaptchaToken] = useState<string | null>(null);
+  const [loginCaptchaResetKey, setLoginCaptchaResetKey] = useState(0);
+
   // Estado para recuperación de contraseña
   const [showForgot, setShowForgot] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -20,22 +27,51 @@ export default function LoginPage() {
   const [forgotMessage, setForgotMessage] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
 
+  // Captcha del forgot password
+  const [forgotCaptchaToken, setForgotCaptchaToken] = useState<string | null>(null);
+  const [forgotCaptchaResetKey, setForgotCaptchaResetKey] = useState(0);
+
   const router = useRouter();
   const supabase = createSupabaseBrowser();
 
+  // ── Callbacks del captcha ──
+  const handleLoginCaptcha = useCallback((token: string) => {
+    setLoginCaptchaToken(token);
+  }, []);
+  const handleLoginCaptchaError = useCallback(() => {
+    setLoginCaptchaToken(null);
+  }, []);
+  const handleForgotCaptcha = useCallback((token: string) => {
+    setForgotCaptchaToken(token);
+  }, []);
+  const handleForgotCaptchaError = useCallback(() => {
+    setForgotCaptchaToken(null);
+  }, []);
+
+  // ── Login ──
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (TURNSTILE_SITE_KEY && !loginCaptchaToken) {
+      setError('Por favor completa la verificación de seguridad.');
+      return;
+    }
+
     setLoading(true);
 
     const { error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: loginCaptchaToken ? { captchaToken: loginCaptchaToken } : undefined,
     });
 
     if (authError) {
       setError(authError.message);
       setLoading(false);
+      // Resetear captcha tras error (los tokens son de un solo uso)
+      setLoginCaptchaToken(null);
+      setLoginCaptchaResetKey((k) => k + 1);
     } else {
       router.push('/');
       router.refresh();
@@ -51,20 +87,30 @@ export default function LoginPage() {
     });
   };
 
+  // ── Forgot password ──
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotMessage('');
+
+    if (TURNSTILE_SITE_KEY && !forgotCaptchaToken) {
+      setForgotMessage('Error: Por favor completa la verificación de seguridad.');
+      return;
+    }
+
     setForgotLoading(true);
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
+        captchaToken: forgotCaptchaToken ?? undefined,
       });
 
       if (error) throw error;
       setForgotSent(true);
     } catch (err: any) {
       setForgotMessage(`Error: ${err.message}`);
+      setForgotCaptchaToken(null);
+      setForgotCaptchaResetKey((k) => k + 1);
     } finally {
       setForgotLoading(false);
     }
@@ -124,7 +170,9 @@ export default function LoginPage() {
                   </p>
 
                   {forgotMessage && (
-                    <div className="bg-wine/10 text-wine text-sm rounded-lg p-3 mb-5 animate-fade-in">
+                    <div className={`text-sm rounded-lg p-3 mb-5 animate-fade-in ${
+                      forgotMessage.includes('Error') ? 'bg-wine/10 text-wine' : 'bg-sage/10 text-sage'
+                    }`}>
                       {forgotMessage}
                     </div>
                   )}
@@ -139,9 +187,22 @@ export default function LoginPage() {
                         onChange={(e) => setForgotEmail(e.target.value)}
                         required
                         className="input-field"
-                        placeholder="tu@email.com"
+                        placeholder="tu@correo.com"
                       />
                     </div>
+
+                    {/* Captcha en recuperación */}
+                    {TURNSTILE_SITE_KEY && (
+                      <div className="pt-2">
+                        <TurnstileWidget
+                          key={`forgot-${forgotCaptchaResetKey}`}
+                          siteKey={TURNSTILE_SITE_KEY}
+                          onVerify={handleForgotCaptcha}
+                          onError={handleForgotCaptchaError}
+                        />
+                      </div>
+                    )}
+
                     <button type="submit" disabled={forgotLoading} className="btn-primary w-full">
                       <Mail className="w-4 h-4" />
                       {forgotLoading ? 'Enviando...' : 'Enviar enlace de recuperación'}
@@ -234,6 +295,18 @@ export default function LoginPage() {
                     ¿Olvidaste tu contraseña?
                   </button>
                 </div>
+
+                {/* Captcha en login */}
+                {TURNSTILE_SITE_KEY && (
+                  <div className="pt-2">
+                    <TurnstileWidget
+                      key={`login-${loginCaptchaResetKey}`}
+                      siteKey={TURNSTILE_SITE_KEY}
+                      onVerify={handleLoginCaptcha}
+                      onError={handleLoginCaptchaError}
+                    />
+                  </div>
+                )}
 
                 <button type="submit" disabled={loading} className="btn-primary w-full">
                   <LogIn className="w-4 h-4" />
