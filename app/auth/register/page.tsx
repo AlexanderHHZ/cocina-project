@@ -163,7 +163,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
+                  <label htmlFor="email" className="block text-sm font-medium mb-2">Correo</label>
                   <input
                     id="email"
                     type="email"

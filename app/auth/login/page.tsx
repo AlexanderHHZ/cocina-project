@@ -130,7 +130,7 @@ export default function LoginPage() {
                   <div className="w-16 h-16 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Mail className="w-7 h-7 text-sage" />
                   </div>
-                  <h2 className="font-display text-xl font-bold mb-2">¡Revisa tu email!</h2>
+                  <h2 className="font-display text-xl font-bold mb-2">¡Revisa tu correo!</h2>
                   <p className="text-sm text-charcoal/60 mb-2">
                     Enviamos un enlace de recuperación a:
                   </p>
@@ -179,7 +179,7 @@ export default function LoginPage() {
 
                   <form onSubmit={handleForgotPassword} className="space-y-4">
                     <div>
-                      <label htmlFor="forgotEmail" className="block text-sm font-medium mb-2">Email</label>
+                      <label htmlFor="forgotEmail" className="block text-sm font-medium mb-2">Correo</label>
                       <input
                         id="forgotEmail"
                         type="email"
@@ -247,7 +247,7 @@ export default function LoginPage() {
               {/* Email/Password */}
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
+                  <label htmlFor="email" className="block text-sm font-medium mb-2">Correo</label>
                   <input
                     id="email"
                     type="email"
