@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChefHat, Youtube, Instagram, Facebook } from 'lucide-react';
+import { ChefHat, Youtube, Instagram, Facebook, BookOpen } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -64,6 +64,15 @@ export default function Footer() {
               <Link href="/contacto" className="hover:text-white hover:translate-x-1 transition-all duration-150">
                 Contacto
               </Link>
+              <a
+                href="/manuales/manual-usuario.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 hover:text-white hover:translate-x-1 transition-all duration-150"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Manual de usuario
+              </a>
             </nav>
           </div>
 
