@@ -7,6 +7,7 @@ import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import {
   Plus, Trash2, Edit3, Save, X, Image as ImageIcon, Youtube, ChefHat, Mail, Check,
   Newspaper, Search, Clock, Users, BarChart3, Eye, Play,
+  BookOpen, ExternalLink,
 } from 'lucide-react';
 import type { Recipe, Post } from '@/types';
 
@@ -30,7 +31,7 @@ type RecipeForm = {
   video_url: string;
 };
 
-type Tab = 'overview' | 'recipes' | 'messages' | 'posts';
+type Tab = 'overview' | 'recipes' | 'messages' | 'posts' | 'manuals';
 
 const emptyForm: RecipeForm = {
   title: '', description: '', ingredients: '', steps: '',
@@ -409,6 +410,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
             <NavItem tab="recipes" icon={ChefHat} label="Recetas" badge={recipes.length} />
             <NavItem tab="messages" icon={Mail} label="Mensajes" badge={unreadCount} />
             <NavItem tab="posts" icon={Newspaper} label="Posts" badge={posts.length} />
+            <NavItem tab="manuals" icon={BookOpen} label="Manuales" />
           </div>
 
           {/* Desktop: sidebar vertical sticky */}
@@ -417,6 +419,7 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
             <NavItem tab="recipes" icon={ChefHat} label="Recetas" badge={recipes.length} />
             <NavItem tab="messages" icon={Mail} label="Mensajes" badge={unreadCount} />
             <NavItem tab="posts" icon={Newspaper} label="Publicaciones" badge={posts.length} />
+            <NavItem tab="manuals" icon={BookOpen} label="Manuales" />
           </nav>
         </aside>
 
@@ -995,6 +998,70 @@ export default function AdminPanel({ initialRecipes, initialMessages, initialPos
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ─────────────── MANUALES ─────────────── */}
+          {activeTab === 'manuals' && (
+            <div className="animate-fade-in">
+              <div className="mb-6">
+                <h2 className="font-display text-2xl font-bold flex items-center gap-3">
+                  <BookOpen className="w-6 h-6 text-terra" /> Manuales
+                </h2>
+                <p className="text-charcoal/50 text-sm mt-1">
+                  Documentación técnica y administrativa del sistema
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Manual Técnico */}
+                <a
+                  href="/manuales/manual-tecnico.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-white rounded-2xl border border-charcoal/5 p-6 hover:border-terra/30 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-terra/10 flex items-center justify-center flex-shrink-0 group-hover:bg-terra/15 transition-colors">
+                      <BookOpen className="w-6 h-6 text-terra" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-display text-lg font-bold">Manual Técnico</h3>
+                        <ExternalLink className="w-4 h-4 text-charcoal/30 group-hover:text-terra transition-colors" />
+                      </div>
+                      <p className="text-sm text-charcoal/50 mt-1">
+                        Arquitectura, stack tecnológico, base de datos y despliegue
+                      </p>
+                      <p className="text-xs text-charcoal/40 mt-3">PDF · Abrir en nueva pestaña</p>
+                    </div>
+                  </div>
+                </a>
+
+                {/* Manual de Administrador */}
+                <a
+                  href="/manuales/manual-administrador.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-white rounded-2xl border border-charcoal/5 p-6 hover:border-sage/30 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-sage/10 flex items-center justify-center flex-shrink-0 group-hover:bg-sage/15 transition-colors">
+                      <BookOpen className="w-6 h-6 text-sage" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-display text-lg font-bold">Manual de Administrador</h3>
+                        <ExternalLink className="w-4 h-4 text-charcoal/30 group-hover:text-sage transition-colors" />
+                      </div>
+                      <p className="text-sm text-charcoal/50 mt-1">
+                        Gestión de recetas, mensajes, publicaciones y usuarios
+                      </p>
+                      <p className="text-xs text-charcoal/40 mt-3">PDF · Abrir en nueva pestaña</p>
+                    </div>
+                  </div>
+                </a>
               </div>
             </div>
           )}

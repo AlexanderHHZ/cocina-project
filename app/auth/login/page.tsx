@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase-browser';
 import TurnstileWidget from '@/components/auth/TurnstileWidget';
-import { LogIn, Mail, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Mail, ArrowLeft, Eye, EyeOff, BookOpen } from 'lucide-react';
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
@@ -320,6 +320,19 @@ export default function LoginPage() {
                   Regístrate
                 </Link>
               </p>
+
+              {/* Manual de usuario */}
+              <div className="mt-4 pt-4 border-t border-charcoal/10 text-center">
+                <a
+                  href="/manuales/manual-usuario.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-charcoal/50 hover:text-terra transition-colors"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Ver manual de usuario
+                </a>
+              </div>
             </>
           )}
         </div>
